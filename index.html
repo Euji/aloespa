@@ -1,318 +1,1158 @@
-/**
- * SPA Aloe — Grand Hotel Piazza Borsa — Percorso Benessere
- * Backend: calendario, email, capienza condivisa (max 6 persone/turno), giorni chiusi via admin.
- *
- * IMPORTANTE: questo script deve essere creato ed eseguito dall'account piazzaborsa@piazzaborsa.it
- * (o comunque un account che abbia accesso al calendario di piazzaborsa@piazzaborsa.it), perché
- * crea/usa un sotto-calendario dedicato chiamato "Prenotazioni Aloe SPA" sotto quell'account.
- * Se lo distribuisci da un altro account, il sotto-calendario verrà creato lì, non su piazzaborsa@piazzaborsa.it.
- *
- * ISTRUZIONI DI PUBBLICAZIONE:
- * 1. Vai su script.google.com, accedi con piazzaborsa@piazzaborsa.it -> "Nuovo progetto"
- * 2. Incolla tutto questo file
- * 3. IMPORTANTE: prima di distribuire, imposta la password admin qui sotto (variabile ADMIN_PASSWORD_DEFAULT)
- *    oppure lasciala e cambiala dopo lanciando la funzione "impostaPasswordAdmin"
- * 4. "Distribuisci" -> "Nuova distribuzione" -> tipo "App web" -> Esegui come: te stesso ->
- *    Chi ha accesso: Chiunque -> Distribuisci -> autorizza i permessi
- * 5. Copia l'URL /exec e incollalo in CALENDAR_WEBHOOK_URL nel file aloe-percorso-benessere.html
- */
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Percorso Benessere · SPA Aloe — Grand Hotel Piazza Borsa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Quicksand:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    --deep:#5E7D5A;      /* sage scuro — bottoni, testo enfatizzato */
+    --mid:#8CA888;       /* verde salvia della brochure — hero, stati attivi */
+    --cream:#F6F7F2;     /* sfondo pagina, quasi bianco come le pagine del menu */
+    --linen:#FFFFFF;     /* card — bianco pieno */
+    --sage:#8CA888;
+    --sage-light:#C9D9C4;
+    --copper:#5E7D5A;    /* niente accento ramato: la brochure resta sui due toni verde/bianco */
+    --ink:#23301F;
+    --ink-soft:#59695A;
+    --line:#DCE3D6;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--cream); color:var(--ink); font-family:'Quicksand',-apple-system,sans-serif; line-height:1.5; }
+  .mono{ font-family:'Space Mono',monospace; }
+  h1,h2,h3{ font-family:'Cinzel',serif; margin:0; font-weight:600; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    position:relative;
+    background:var(--mid);
+    color:var(--linen); padding:70px 24px 90px; overflow:hidden; text-align:center;
+    border-top:6px double #FFFFFF; border-bottom:6px double #FFFFFF;
+  }
+  .eyebrow{ font-family:'Space Mono',monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--deep); margin-bottom:18px; }
+  .hero .eyebrow{ color:#FFFFFF; }
+  .hero h1{ font-size:clamp(32px,5.5vw,52px); line-height:1.15; max-width:780px; margin:0 auto 20px; font-weight:600; color:#FFFFFF; }
+  .hero h1 em{ font-style:italic; color:#FFFFFF; font-weight:600; }
+  .hero p.sub{ max-width:540px; margin:0 auto 36px; color:#F1F5EE; font-size:16px; }
+  .ripples{ width:100%; max-width:280px; margin:0 auto 30px; }
+  .cta-btn{
+    display:inline-block; background:#FFFFFF; color:var(--deep); font-family:'Quicksand',sans-serif;
+    font-weight:700; font-size:15px; padding:14px 30px; border:none; border-radius:999px; cursor:pointer;
+    text-decoration:none; transition:transform .15s ease, background .15s ease;
+  }
+  .cta-btn:hover{ background:#EFF5EC; transform:translateY(-1px); }
+  .cta-btn:focus-visible{ outline:3px solid #FFFFFF; outline-offset:3px; }
+
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
+  section.block{ padding:60px 0; }
+  .section-head{ text-align:center; max-width:600px; margin:0 auto 36px; }
+  .section-head .eyebrow{ color:#5E7D5A; }
+  .section-head h2{ font-size:clamp(24px,3.5vw,32px); color:var(--ink); }
+  .section-head p{ color:var(--ink-soft); font-size:15px; margin-top:10px; }
+
+  /* product card */
+  .product-card{
+    background:var(--linen); border:1px solid var(--line); border-radius:20px;
+    padding:32px; display:flex; gap:28px; flex-wrap:wrap; align-items:center;
+  }
+  .product-card .ring{ width:96px; height:96px; border-radius:50%; border:2px solid var(--sage); flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; }
+  .product-card .ring::before{ content:''; width:60px; height:60px; border-radius:50%; border:2px solid var(--copper); }
+  .product-card .info{ flex:1; min-width:220px; }
+  .product-card h3{ font-size:22px; margin-bottom:8px; }
+  .product-card p{ color:var(--ink-soft); font-size:14.5px; margin:0 0 14px; }
+  .product-meta{ display:flex; gap:22px; flex-wrap:wrap; font-family:'Space Mono',monospace; font-size:13.5px; color:var(--ink-soft); }
+  .product-meta b{ color:var(--ink); }
+
+  /* booking card (riusato) */
+  .booking-card{ background:var(--linen); border:1px solid var(--line); border-radius:20px; padding:8px; box-shadow:0 20px 50px rgba(22,35,28,.08); }
+  .steps-nav{ display:flex; gap:6px; padding:16px 20px 0; flex-wrap:wrap; }
+  .steps-nav span{ font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:#B4AC8E; padding:6px 10px; border-radius:999px; }
+  .steps-nav span.active{ background:var(--cream); color:var(--ink); font-weight:700; }
+  .steps-nav span::after{ content:'→'; margin-left:8px; color:#D6CCA8; }
+  .steps-nav span:last-child::after{ content:''; }
+
+  .step-panel{ display:none; padding:24px 28px 30px; }
+  .step-panel.visible{ display:block; }
+  .step-panel h3{ font-size:19px; margin-bottom:4px; }
+  .step-panel .hint{ color:var(--ink-soft); font-size:13.5px; margin-bottom:20px; }
+
+  .summary-strip{ display:flex; flex-wrap:wrap; gap:10px; padding:0 28px 18px; }
+  .chip{ font-family:'Space Mono',monospace; font-size:12.5px; background:var(--cream); border:1px solid var(--line); border-radius:999px; padding:6px 12px; color:var(--ink-soft); cursor:pointer; }
+  .chip b{ color:var(--ink); font-weight:700; }
+
+  /* calendar */
+  .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .cal-nav button{ background:none; border:1px solid var(--line); border-radius:8px; width:32px; height:32px; cursor:pointer; font-size:15px; color:var(--ink); }
+  .cal-nav button:disabled{ opacity:.3; cursor:not-allowed; }
+  .cal-month{ font-family:'Cinzel',serif; font-size:17px; text-transform:capitalize; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .cal-dow{ text-align:center; font-family:'Space Mono',monospace; font-size:11px; color:#AFA484; padding-bottom:4px; }
+  .cal-day{ aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:10px; font-size:13.5px; cursor:pointer; border:1px solid transparent; background:var(--cream); color:var(--ink); }
+  .cal-day.empty{ background:none; cursor:default; }
+  .cal-day.disabled{ background:none; color:#CFC6AE; cursor:not-allowed; }
+  .cal-day.selected{ background:var(--sage); color:#1E2B1B; font-weight:700; }
+  .cal-day.closed-admin{ background:#D9756B; color:#fff; font-weight:700; }
+  .cal-day:not(.disabled):not(.empty):not(.selected):hover{ border-color:var(--sage); }
+  .cal-legend{ font-size:12.5px; color:var(--ink-soft); margin-top:12px; }
+
+  /* time slots */
+  .slot-row{ display:flex; gap:12px; flex-wrap:wrap; }
+  .slot-btn{ font-family:'Space Mono',monospace; font-size:14px; background:var(--cream); border:1px solid var(--line); border-radius:12px; padding:14px 18px; cursor:pointer; min-width:140px; text-align:left; }
+  .slot-btn small{ display:block; font-family:'Quicksand',sans-serif; color:var(--ink-soft); font-size:11.5px; margin-top:3px; }
+  .slot-btn:hover:not(:disabled){ border-color:var(--sage); }
+  .slot-btn.selected{ background:var(--sage); border-color:var(--sage); color:#1E2B1B; }
+  .slot-btn:disabled{ opacity:.4; text-decoration:line-through; cursor:not-allowed; }
+  .slot-btn.skeleton{ color:transparent; cursor:default; pointer-events:none; background:linear-gradient(90deg,var(--cream) 25%,#E6DFC6 37%,var(--cream) 63%); background-size:400% 100%; animation:skeleton-pulse 1.3s ease infinite; }
+  @keyframes skeleton-pulse{ 0%{background-position:100% 50%;} 100%{background-position:0 50%;} }
+  .hour-flags{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:6px; }
+  .hour-flag{
+    display:flex; align-items:center; gap:10px; background:var(--cream); border:1.5px solid var(--line);
+    border-radius:12px; padding:14px 18px; cursor:pointer; min-width:150px; user-select:none;
+  }
+  .hour-flag input{ width:18px; height:18px; accent-color:var(--deep); }
+  .hour-flag .htime{ font-family:'Space Mono',monospace; font-size:15px; font-weight:700; }
+  .hour-flag .havail{ display:block; font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+  .hour-flag.checked{ background:var(--sage-light); border-color:var(--sage); }
+  .hour-flag.disabled{ opacity:.4; cursor:not-allowed; }
+  .selection-summary{ background:var(--linen); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:16px 0; font-size:14.5px; }
+  .kemonia-note{ background:#EFF3E8; border:1px dashed var(--sage); border-radius:12px; padding:12px 16px; margin-bottom:16px; font-size:13.5px; color:var(--ink-soft); }
+  .status-msg{ font-size:13.5px; color:var(--ink-soft); margin-top:14px; }
+
+  /* people stepper */
+  .stepper{ display:flex; align-items:center; gap:18px; }
+  .stepper button{ width:44px; height:44px; border-radius:50%; border:1px solid var(--line); background:var(--cream); font-size:20px; cursor:pointer; color:var(--ink); }
+  .stepper button:disabled{ opacity:.35; cursor:not-allowed; }
+  .stepper .count{ font-family:'Cinzel',serif; font-size:32px; min-width:50px; text-align:center; }
+  .stepper-note{ margin-top:10px; }
+
+  /* form */
+  .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:520px){ .form-grid{ grid-template-columns:1fr; } }
+  .field{ display:flex; flex-direction:column; gap:6px; }
+  .field.full{ grid-column:1/-1; }
+  .field label{ font-size:12.5px; color:var(--ink-soft); font-weight:600; }
+  .field input, .field textarea, .field select{ font-family:'Quicksand',sans-serif; padding:11px 12px; border:1px solid var(--line); border-radius:9px; background:#fff; font-size:14.5px; }
+  .field input:focus, .field textarea:focus, .field select:focus{ outline:2px solid var(--sage); outline-offset:0; border-color:var(--sage); }
+
+  .primary-btn{ background:var(--deep); color:var(--linen); border:none; font-family:'Quicksand',sans-serif; font-weight:700; font-size:14.5px; padding:13px 24px; border-radius:10px; cursor:pointer; margin-top:18px; }
+  .primary-btn:hover{ background:var(--mid); }
+  .primary-btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+  /* payment */
+  .price-summary{ background:var(--cream); border:1px solid var(--line); border-radius:12px; padding:18px 20px; margin-bottom:18px; }
+  .price-summary .row{ display:flex; justify-content:space-between; font-size:14px; padding:4px 0; }
+  .price-summary .row.total{ border-top:1px solid var(--line); margin-top:8px; padding-top:10px; font-weight:700; font-size:16px; }
+  #paypal-button-container{ max-width:320px; }
+  .preview-pay-btn{ background:#FFC439; color:#111; border:none; font-weight:800; font-family:'Quicksand',sans-serif; padding:13px 20px; border-radius:24px; cursor:pointer; width:100%; max-width:320px; font-size:14.5px; }
+  .preview-note{ font-size:12px; color:#5E7D5A; margin-top:8px; max-width:320px; }
+
+  .confirm-box{ text-align:center; padding:20px 0; }
+  .confirm-box .code{ font-family:'Space Mono',monospace; font-size:22px; letter-spacing:.08em; background:var(--cream); display:inline-block; padding:10px 20px; border-radius:10px; margin:14px 0; }
+
+  /* admin */
+  .admin-section{ background:#EDE6D2; }
+  .admin-box{ background:var(--linen); border:1px dashed var(--line); border-radius:16px; padding:26px 28px; }
+  .weekday-toggles{ display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+  .weekday-toggles label{ display:flex; align-items:center; gap:8px; background:var(--cream); border:1px solid var(--line); border-radius:10px; padding:9px 14px; font-size:13.5px; cursor:pointer; }
+
+  footer{ text-align:center; padding:40px 24px 60px; color:#5E7D5A; font-size:13px; }
+
+  /* language toggle */
+  .lang-toggle{ position:absolute; top:16px; right:16px; display:flex; gap:4px; z-index:5; }
+  .lang-toggle button{
+    background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.5); color:#FFFFFF;
+    font-family:'Space Mono',monospace; font-size:11px; letter-spacing:.05em; padding:5px 10px;
+    border-radius:999px; cursor:pointer;
+  }
+  .lang-toggle button.active{ background:#FFFFFF; color:var(--deep); font-weight:700; }
+
+  /* cancellazione compatta */
+  .cancel-compact{ max-width:520px; margin:0 auto; }
+  .cancel-toggle{
+    display:flex; align-items:center; justify-content:space-between; width:100%;
+    background:var(--linen); border:1px solid var(--line); border-radius:12px;
+    padding:12px 16px; cursor:pointer; font-family:'Quicksand',sans-serif; font-size:13.5px; color:var(--ink-soft);
+  }
+  .cancel-toggle b{ color:var(--ink); }
+  .cancel-toggle .chevron{ transition:transform .15s ease; }
+  .cancel-toggle.open .chevron{ transform:rotate(90deg); }
+  .cancel-body{ display:none; background:var(--linen); border:1px solid var(--line); border-top:none; border-radius:0 0 12px 12px; padding:16px; }
+  .cancel-body.open{ display:block; }
+  .cancel-body .form-grid{ gap:10px; }
+  .cancel-body .field label{ font-size:11.5px; }
+  .cancel-body input, .cancel-body select{ padding:8px 10px; font-size:13px; }
+  .cancel-body .primary-btn{ font-size:13px; padding:9px 16px; margin-top:10px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="lang-toggle" id="langToggle">
+    <button type="button" data-lang="it" class="active">IT</button>
+    <button type="button" data-lang="en">EN</button>
+  </div>
+  <div class="eyebrow">SPA ALOE · GRAND HOTEL PIAZZA BORSA</div>
+  <h1 data-i18n-html="hero_title">Un percorso di <em>quiete condivisa</em>,<br>fino a sei persone alla volta.</h1>
+  <p class="sub" data-i18n="hero_sub">Aperto anche a chi non alloggia in hotel. 50 minuti di percorso benessere, tra le 17:00 e le 20:00.</p>
+
+  <div class="ripples" aria-hidden="true">
+    <svg viewBox="0 0 220 220">
+      <g fill="none" stroke="#FFFFFF" stroke-width="1.4" opacity="0.85">
+        <path d="M110,110 C90,80 90,40 110,15 C130,40 130,80 110,110 Z"/>
+        <path d="M110,110 C75,95 45,70 30,40 C65,35 100,55 110,110 Z"/>
+        <path d="M110,110 C145,95 175,70 190,40 C155,35 120,55 110,110 Z"/>
+        <path d="M110,110 C70,120 35,140 15,170 C55,180 95,165 110,110 Z"/>
+        <path d="M110,110 C150,120 185,140 205,170 C165,180 125,165 110,110 Z"/>
+      </g>
+      <circle cx="110" cy="110" r="5" fill="#FFFFFF"/>
+    </svg>
+  </div>
+
+  <a href="#booking" class="cta-btn" data-i18n="cta_book">Prenota il percorso</a>
+</header>
+
+<main class="wrap">
+
+  <section class="block" id="percorso">
+    <div class="section-head">
+      <div class="eyebrow" data-i18n="percorso_eyebrow">IL PERCORSO</div>
+      <h2 data-i18n="percorso_title">Percorso Benessere</h2>
+    </div>
+    <div class="product-card">
+      <div class="ring"></div>
+      <div class="info">
+        <h3>Percorso Benessere SPA Aloe</h3>
+        <p data-i18n="product_desc">Un unico percorso condiviso, pensato per essere vissuto in compagnia — da soli o fino a sei persone insieme.</p>
+        <div class="product-meta">
+          <span data-i18n-html="product_meta_duration"><b>50 min</b></span>
+          <span data-i18n-html="product_meta_price"><b>35 €</b> a persona</span>
+          <span data-i18n-html="product_meta_capacity">fino a <b>6 persone</b> per turno</span>
+          <span data-i18n-html="product_meta_external">anche per <b>esterni</b></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="booking">
+    <div class="section-head">
+      <div class="eyebrow" data-i18n="booking_eyebrow">LA PRENOTAZIONE</div>
+      <h2 data-i18n="booking_title">Scegli data, orario e quante persone</h2>
+      <p data-i18n="booking_desc">Ogni turno ha 6 posti condivisi: puoi prenotarne da 1 a 6, in base a quanti sono ancora liberi.</p>
+    </div>
+
+    <div class="booking-card">
+      <div class="steps-nav">
+        <span data-step="1" data-i18n="step_data">Data</span>
+        <span data-step="2" data-i18n="step_orario">Orario</span>
+        <span data-step="3" data-i18n="step_persone">Persone</span>
+        <span data-step="4" data-i18n="step_dati">I tuoi dati</span>
+        <span data-step="5" data-i18n="step_pagamento">Pagamento</span>
+      </div>
+
+      <div class="summary-strip" id="summaryStrip"></div>
+
+      <!-- STEP 1: DATA -->
+      <div class="step-panel" data-panel="1">
+        <h3 data-i18n="step1_title">Quando vuoi venire?</h3>
+        <p class="hint" id="calHint" data-i18n="step1_hint">Dal 3 agosto al 30 settembre 2026.</p>
+        <div class="cal-nav">
+          <button id="calPrev" aria-label="Mese precedente">‹</button>
+          <div class="cal-month" id="calMonthLabel"></div>
+          <button id="calNext" aria-label="Mese successivo">›</button>
+        </div>
+        <div class="cal-grid" id="calDow"></div>
+        <div class="cal-grid" id="calGrid" style="margin-top:6px;"></div>
+        <div class="cal-legend" data-i18n="cal_legend">Le celle chiare non sono prenotabili (giorno chiuso o fuori stagione).</div>
+      </div>
+
+      <!-- STEP 2: ORARIO (flag delle fasce: una = 50 min, due consecutive = 2 ore) -->
+      <div class="step-panel" data-panel="2">
+        <h3 data-i18n="step2_title">A che ora?</h3>
+        <p class="hint" data-i18n-html="step2_hint">Seleziona <b>una fascia</b> per il percorso da 50 minuti, oppure <b>due fasce consecutive</b> per il percorso da 2 ore.</p>
+        <div class="hour-flags" id="hourFlags"></div>
+        <div class="status-msg" id="slotStatus"></div>
+        <div class="selection-summary" id="selectionSummary" style="display:none;"></div>
+        <div class="kemonia-note" id="kemoniaNote" style="display:none;" data-i18n="kemonia_note">
+          Alloggi in hotel? Chiedi il codice sconto in reception per il percorso delle 17:00.
+        </div>
+        <button class="primary-btn" id="toOrarioContinueBtn" disabled data-i18n="continue_btn">Continua</button>
+      </div>
+
+      <!-- STEP 3: PERSONE -->
+      <div class="step-panel" data-panel="3">
+        <h3 data-i18n="step3_title">Quante persone?</h3>
+        <p class="hint" id="peopleHint" data-i18n="step3_hint">Puoi prenotare da 1 fino ai posti ancora liberi in questo turno.</p>
+        <div class="stepper">
+          <button type="button" id="peopleMinus">−</button>
+          <div class="count" id="peopleCount">1</div>
+          <button type="button" id="peoplePlus">+</button>
+        </div>
+        <p class="hint stepper-note" id="peopleAvail"></p>
+        <button class="primary-btn" id="toContactBtn" data-i18n="continue_btn">Continua</button>
+      </div>
+
+      <!-- STEP 4: DATI -->
+      <div class="step-panel" data-panel="4">
+        <h3 data-i18n="step4_title">I tuoi dati</h3>
+        <p class="hint" style="margin-bottom:14px;" data-i18n="step4_required">I campi con * sono obbligatori.</p>
+        <div class="form-grid">
+          <div class="field"><label for="fName" data-i18n="label_name">Nome *</label><input id="fName" type="text" autocomplete="given-name" required></div>
+          <div class="field"><label for="fSurname" data-i18n="label_surname">Cognome *</label><input id="fSurname" type="text" autocomplete="family-name" required></div>
+          <div class="field"><label for="fPhone" data-i18n="label_phone">Telefono *</label><input id="fPhone" type="tel" autocomplete="tel" required placeholder="Es. 320 1234567" data-i18n-placeholder="placeholder_phone"></div>
+          <div class="field"><label for="fEmail" data-i18n="label_email">Email *</label><input id="fEmail" type="email" autocomplete="email" required></div>
+          <div class="field full"><label for="fNote" data-i18n="label_note">Note (facoltativo)</label><textarea id="fNote" rows="2" placeholder="Allergie, preferenze, richieste particolari..." data-i18n-placeholder="placeholder_note"></textarea></div>
+        </div>
+        <button class="primary-btn" id="toPaymentBtn" data-i18n="to_payment_btn">Vai al pagamento</button>
+        <div class="status-msg" id="formStatus"></div>
+      </div>
+
+      <!-- STEP 5: PAGAMENTO -->
+      <div class="step-panel" data-panel="5">
+        <h3 data-i18n="step5_title">Conferma e paga</h3>
+        <div class="field" style="max-width:320px; margin-bottom:16px;">
+          <label for="fDiscount" data-i18n="label_discount">Codice sconto alloggiati (facoltativo)</label>
+          <div style="display:flex; gap:8px;">
+            <input id="fDiscount" type="text" placeholder="Es. kemonia" style="flex:1; text-transform:lowercase;">
+            <button type="button" class="primary-btn" id="applyDiscountBtn" style="margin-top:0; padding:11px 16px;" data-i18n="apply_btn">Applica</button>
+          </div>
+          <div class="status-msg" id="discountStatus"></div>
+        </div>
+        <div class="price-summary" id="priceSummary"></div>
+        <div id="paypal-button-container"></div>
+        <button class="preview-pay-btn" id="previewPayBtn" style="display:none;">Paga con PayPal</button>
+        <button class="primary-btn" id="freeConfirmBtn" style="display:none;" data-i18n="free_confirm_btn">Conferma prenotazione gratuita</button>
+        <div class="preview-note" id="paypalNote"></div>
+      </div>
+
+      <!-- CONFERMA -->
+      <div class="step-panel" data-panel="confirm">
+        <div class="confirm-box">
+          <h3 data-i18n="confirm_title">Prenotazione confermata</h3>
+          <p data-i18n="confirm_text">Ti aspettiamo. Conserva questo codice, ti sarà utile all'arrivo.</p>
+          <div class="code mono" id="confirmCode"></div>
+          <p class="hint" id="confirmDetails"></p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="block" id="cancella" style="padding:24px 0 40px;">
+    <div class="cancel-compact">
+      <button type="button" class="cancel-toggle" id="cancelToggleBtn">
+        <span data-i18n="cancel_toggle_label">Devi disdire una prenotazione?</span>
+        <span class="chevron">›</span>
+      </button>
+      <div class="cancel-body" id="cancelBody">
+        <p class="hint" style="margin-bottom:10px;" data-i18n="cancel_hint">Trovi il codice nell'email di conferma che hai ricevuto.</p>
+        <div class="form-grid">
+          <div class="field">
+            <label for="cancelDate" data-i18n="cancel_label_date">Data della prenotazione</label>
+            <input type="date" id="cancelDate" min="2026-08-03" max="2026-09-30">
+          </div>
+          <div class="field">
+            <label for="cancelTime" data-i18n="cancel_label_time">Orario</label>
+            <select id="cancelTime">
+              <option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+              <option value="19:00">19:00</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label for="cancelCode" data-i18n="cancel_label_code">Codice prenotazione</label>
+            <input type="text" id="cancelCode" placeholder="Es. ALO-A7K2P" style="text-transform:uppercase;">
+          </div>
+        </div>
+        <button class="primary-btn" id="cancelBtn" data-i18n="cancel_btn">Cancella prenotazione</button>
+        <div class="status-msg" id="cancelStatus"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block admin-section" id="admin" style="display:none;">
+    <div class="section-head">
+      <div class="eyebrow">AREA GESTIONE — RISERVATA ALLO STAFF</div>
+      <h2>Blocca le date senza operatrici</h2>
+      <p>Le giornate chiuse possono cambiare ogni settimana in base ai turni: seleziona le date direttamente sul calendario.</p>
+    </div>
+    <div class="admin-box">
+      <div id="adminLoginBox">
+        <div class="field" style="max-width:320px; margin-bottom:14px;">
+          <label for="adminPassword">Password gestione</label>
+          <input id="adminPassword" type="password" placeholder="Password">
+        </div>
+        <button class="primary-btn" id="adminLoginBtn" style="margin-top:0;">Accedi</button>
+        <div class="status-msg" id="adminLoginStatus"></div>
+      </div>
+
+      <div id="adminPanel" style="display:none;">
+        <p class="hint">Clicca sulle date per chiuderle o riaprirle, poi salva. Le date già passate non sono modificabili.</p>
+        <div class="cal-nav">
+          <button id="adminCalPrev" aria-label="Mese precedente">‹</button>
+          <div class="cal-month" id="adminCalMonthLabel"></div>
+          <button id="adminCalNext" aria-label="Mese successivo">›</button>
+        </div>
+        <div class="cal-grid" id="adminCalDow"></div>
+        <div class="cal-grid" id="adminCalGrid" style="margin-top:6px;"></div>
+        <div class="cal-legend">Le date evidenziate in rosso sono chiuse alle prenotazioni.</div>
+        <button class="primary-btn" id="adminSaveBtn">Salva date chiuse</button>
+        <div class="status-msg" id="adminStatus"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer data-i18n="footer_text">
+  SPA Aloe — Grand Hotel Piazza Borsa · Percorso Benessere · 3 agosto – 30 settembre 2026 · 17:00–20:00
+</footer>
+
+<script>
+/* ---------------- CONFIGURAZIONE ---------------- */
+// URL del backend Google Apps Script (crea evento calendario + email + gestisce capienza e giorni chiusi).
+const CALENDAR_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbySzMasVfOQun8wRyZuMxG8OoCA9ypJsx-2G1eNyJqA9sOjBlSlUzIvGk2rFbpyy22R/exec';
 
 const CAPACITY = 6;
-const ADMIN_PASSWORD_DEFAULT = 'kemonia-admin'; // cambiala! vedi funzione impostaPasswordAdmin qui sotto
-const CALENDAR_NAME = 'Prenotazioni Aloe SPA';
-const HOTEL_EMAILS = 'piazzaborsa@piazzaborsa.it,spa@piazzaborsa.it';
+const SLOTS = ['17:00','18:00','19:00'];
+const DURATIONS = {
+  '50':  { minutes:50,  labelIt:'50 minuti', priceStandard:35, priceKemonia17:20 },
+  '120': { minutes:120, labelIt:'2 ore',      priceStandard:65, priceKemonia17:55 }
+};
+const START_DATE = new Date(2026,7,3);
+const END_DATE   = new Date(2026,8,30);
+const DOW_BY_LANG = {
+  it: ['Lun','Mar','Mer','Gio','Ven','Sab','Dom'],
+  en: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
+};
+const MONTHS_BY_LANG = {
+  it: ['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'],
+  en: ['January','February','March','April','May','June','July','August','September','October','November','December']
+};
+// Nota: gli indirizzi email dell'hotel sono ora configurati direttamente nel backend
+// Google Apps Script (costante HOTEL_EMAIL nel file .gs), non più qui. Le email restano in italiano
+// a prescindere dalla lingua scelta sul sito, perché lette dallo staff dell'hotel.
 
-// --- Template email HTML (brand SPA Aloe: verde salvia + bianco) ---
-function emailWrapper(innerHtml) {
-  return '' +
-    '<div style="background:#F6F7F2; padding:32px 16px; font-family:Georgia, \'Times New Roman\', serif;">' +
-      '<div style="max-width:480px; margin:0 auto; background:#FFFFFF; border-radius:16px; overflow:hidden; border:1px solid #DCE3D6;">' +
-        '<div style="background:#8CA888; padding:28px 30px; text-align:center;">' +
-          '<div style="color:#FFFFFF; font-size:11px; letter-spacing:2px; text-transform:uppercase; font-family:Arial, sans-serif; opacity:.9;">SPA ALOE &middot; GRAND HOTEL PIAZZA BORSA</div>' +
-        '</div>' +
-        '<div style="padding:30px 30px 10px;">' + innerHtml + '</div>' +
-        '<div style="padding:18px 30px 26px; border-top:1px solid #EEEDE4; font-family:Arial, sans-serif; font-size:11.5px; color:#8A9385; text-align:center;">' +
-          'Grand Hotel Piazza Borsa &middot; Via dei Cartari 18, Palermo' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-}
-function rowHtml(label, value) {
-  return '<tr>' +
-    '<td style="padding:7px 0; color:#59695A; font-family:Arial, sans-serif; font-size:13px;">' + label + '</td>' +
-    '<td style="padding:7px 0; color:#23301F; font-family:Arial, sans-serif; font-size:13px; text-align:right; font-weight:600;">' + value + '</td>' +
-  '</tr>';
-}
-function codeBlockHtml(code) {
-  return '<div style="text-align:center; margin:22px 0;">' +
-    '<span style="display:inline-block; background:#F6F7F2; border:1px solid #DCE3D6; border-radius:10px; padding:10px 22px; font-family:\'Courier New\', monospace; font-size:19px; letter-spacing:1px; color:#23301F;">' + code + '</span>' +
-  '</div>';
+/* ---------------- LINGUA (IT / EN) ---------------- */
+let currentLang = 'it';
+const I18N = {
+  it: {
+    hero_title: 'Un percorso di <em>quiete condivisa</em>,<br>fino a sei persone alla volta.',
+    hero_sub: 'Aperto anche a chi non alloggia in hotel. 50 minuti di percorso benessere, tra le 17:00 e le 20:00.',
+    cta_book: 'Prenota il percorso',
+    percorso_eyebrow: 'IL PERCORSO',
+    percorso_title: 'Percorso Benessere',
+    product_desc: 'Un unico percorso condiviso, pensato per essere vissuto in compagnia — da soli o fino a sei persone insieme.',
+    product_meta_duration: '<b>50 min</b>',
+    product_meta_price: '<b>35 €</b> a persona',
+    product_meta_capacity: 'fino a <b>6 persone</b> per turno',
+    product_meta_external: 'anche per <b>esterni</b>',
+    booking_eyebrow: 'LA PRENOTAZIONE',
+    booking_title: 'Scegli data, orario e quante persone',
+    booking_desc: 'Ogni turno ha 6 posti condivisi: puoi prenotarne da 1 a 6, in base a quanti sono ancora liberi.',
+    step_data: 'Data', step_orario: 'Orario', step_persone: 'Persone', step_dati: 'I tuoi dati', step_pagamento: 'Pagamento',
+    step1_title: 'Quando vuoi venire?',
+    step1_hint: 'Dal 3 agosto al 30 settembre 2026.',
+    cal_legend: 'Le celle chiare non sono prenotabili (giorno chiuso o fuori stagione).',
+    step2_title: 'A che ora?',
+    step2_hint: 'Seleziona <b>una fascia</b> per il percorso da 50 minuti, oppure <b>due fasce consecutive</b> per il percorso da 2 ore.',
+    kemonia_note: 'Alloggi in hotel? Chiedi il codice sconto in reception per il percorso delle 17:00.',
+    continue_btn: 'Continua',
+    step3_title: 'Quante persone?',
+    step3_hint: 'Puoi prenotare da 1 fino ai posti ancora liberi in questo turno.',
+    step4_title: 'I tuoi dati',
+    step4_required: 'I campi con * sono obbligatori.',
+    label_name: 'Nome *', label_surname: 'Cognome *', label_phone: 'Telefono *', label_email: 'Email *', label_note: 'Note (facoltativo)',
+    placeholder_phone: 'Es. 320 1234567', placeholder_note: 'Allergie, preferenze, richieste particolari...',
+    to_payment_btn: 'Vai al pagamento',
+    step5_title: 'Conferma e paga',
+    label_discount: 'Codice sconto alloggiati (facoltativo)',
+    apply_btn: 'Applica',
+    free_confirm_btn: 'Conferma prenotazione gratuita',
+    confirm_title: 'Prenotazione confermata',
+    confirm_text: 'Ti aspettiamo. Conserva questo codice, ti sarà utile all\'arrivo.',
+    cancel_toggle_label: 'Devi disdire una prenotazione?',
+    cancel_hint: 'Trovi il codice nell\'email di conferma che hai ricevuto.',
+    cancel_label_date: 'Data della prenotazione', cancel_label_time: 'Orario', cancel_label_code: 'Codice prenotazione',
+    cancel_btn: 'Cancella prenotazione',
+    footer_text: 'SPA Aloe — Grand Hotel Piazza Borsa · Percorso Benessere · 3 agosto – 30 settembre 2026 · 17:00–20:00',
+
+    duration_label_50: '50 minuti', duration_label_120: '2 ore',
+    people_unit: 'persona/e',
+    seats_free: 'posti liberi', seats_full: 'Al completo',
+    all_full: 'Tutti gli orari di questa data sono al completo: prova un altro giorno.',
+    checking_avail: 'Verifico i posti disponibili...',
+    selected_summary: (dur, start, end, remaining) => `Hai selezionato: <b>${dur}</b>, dalle <b>${start}</b> alle <b>${end}</b> — ${remaining} posti liberi.`,
+    selected_full: 'Per questa combinazione di orari non ci sono abbastanza posti liberi: prova un altro orario.',
+    price_row_label: (dur, people) => `Percorso Benessere (${dur}) × ${people} persona/e`,
+    price_each: '€ cad.',
+    discount_row: 'Sconto alloggiati (kemonia)',
+    payment_method: 'Modalità di pagamento',
+    pay_at_hotel: 'In hotel',
+    total: 'Totale', total_pay_hotel: 'Totale (da pagare in hotel)',
+    kemonia_applied: (price) => `Codice applicato: ${price}€ a persona (valido solo per il turno delle 17:00).`,
+    kemonia_invalid_time: 'Il codice "kemonia" è valido solo per il turno delle 17:00: qui non verrà applicato.',
+    pagdir_applied: 'Codice applicato: pagherai direttamente in hotel, nessun pagamento online richiesto.',
+    prova_applied: 'Codice di test applicato: prenotazione gratuita.',
+    code_invalid: 'Codice non valido.',
+    pay_at_hotel_btn: 'Conferma prenotazione (pagamento in hotel)',
+    pay_at_hotel_note: (price) => `Codice PAGDIR: pagherai ${price} € direttamente in hotel.`,
+    test_note: 'Codice di test: nessun pagamento richiesto.',
+    paypal_btn: (price) => `Paga ${price} € con PayPal`,
+    paypal_preview_note: 'Modalità anteprima: il vero pulsante PayPal apparirà qui una volta pubblicato il sito con un Client ID valido.',
+    paypal_error: 'Si è verificato un problema con PayPal. Riprova tra poco.',
+    form_missing: 'Compila nome, cognome, telefono ed email per proseguire.',
+    form_phone_invalid: 'Inserisci un numero di telefono valido (almeno 8 cifre).',
+    form_email_invalid: 'Inserisci un indirizzo email valido.',
+    confirm_details: (date, time, dur, people, name, surname) => `${date} ore ${time} (${dur}) · ${people} persona/e · ${name} ${surname}`,
+    cancel_missing: 'Inserisci data e codice prenotazione.',
+    cancel_checking: 'Verifico...',
+    cancel_not_found: 'Non risulta nessuna prenotazione attiva con questo codice per data e orario indicati.',
+    cancel_success: 'Prenotazione cancellata. I posti sono di nuovo disponibili.'
+  },
+  en: {
+    hero_title: 'A path of <em>shared quiet</em>,<br>for up to six people at a time.',
+    hero_sub: 'Also open to guests not staying at the hotel. 50 minutes of wellness treatment, between 5pm and 8pm.',
+    cta_book: 'Book the treatment',
+    percorso_eyebrow: 'THE TREATMENT',
+    percorso_title: 'Percorso Benessere',
+    product_desc: 'A single shared treatment, designed to be enjoyed together — alone or with up to six people.',
+    product_meta_duration: '<b>50 min</b>',
+    product_meta_price: '<b>€35</b> per person',
+    product_meta_capacity: 'up to <b>6 people</b> per slot',
+    product_meta_external: 'also for <b>non-guests</b>',
+    booking_eyebrow: 'BOOKING',
+    booking_title: 'Choose date, time and how many people',
+    booking_desc: 'Each slot has 6 shared spots: you can book from 1 to 6, depending on availability.',
+    step_data: 'Date', step_orario: 'Time', step_persone: 'People', step_dati: 'Your details', step_pagamento: 'Payment',
+    step1_title: 'When would you like to come?',
+    step1_hint: 'From August 3 to September 30, 2026.',
+    cal_legend: 'Faded cells are not bookable (closed day or out of season).',
+    step2_title: 'What time?',
+    step2_hint: 'Select <b>one time slot</b> for the 50-minute treatment, or <b>two consecutive slots</b> for the 2-hour treatment.',
+    kemonia_note: 'Staying at the hotel? Ask reception for your discount code for the 5pm slot.',
+    continue_btn: 'Continue',
+    step3_title: 'How many people?',
+    step3_hint: 'You can book from 1 up to the spots still available for this slot.',
+    step4_title: 'Your details',
+    step4_required: 'Fields marked with * are required.',
+    label_name: 'First name *', label_surname: 'Last name *', label_phone: 'Phone *', label_email: 'Email *', label_note: 'Notes (optional)',
+    placeholder_phone: 'E.g. 320 1234567', placeholder_note: 'Allergies, preferences, special requests...',
+    to_payment_btn: 'Go to payment',
+    step5_title: 'Confirm and pay',
+    label_discount: 'Guest discount code (optional)',
+    apply_btn: 'Apply',
+    free_confirm_btn: 'Confirm free booking',
+    confirm_title: 'Booking confirmed',
+    confirm_text: 'We look forward to seeing you. Keep this code, you\'ll need it on arrival.',
+    cancel_toggle_label: 'Need to cancel a booking?',
+    cancel_hint: 'You\'ll find the code in your confirmation email.',
+    cancel_label_date: 'Booking date', cancel_label_time: 'Time', cancel_label_code: 'Booking code',
+    cancel_btn: 'Cancel booking',
+    footer_text: 'SPA Aloe — Grand Hotel Piazza Borsa · Wellness treatment · August 3 – September 30, 2026 · 5pm–8pm',
+
+    duration_label_50: '50 minutes', duration_label_120: '2 hours',
+    people_unit: 'people',
+    seats_free: 'spots free', seats_full: 'Fully booked',
+    all_full: 'All time slots for this date are fully booked: please try another day.',
+    checking_avail: 'Checking availability...',
+    selected_summary: (dur, start, end, remaining) => `You selected: <b>${dur}</b>, from <b>${start}</b> to <b>${end}</b> — ${remaining} spots free.`,
+    selected_full: 'There aren\'t enough spots left for this combination: please try another time.',
+    price_row_label: (dur, people) => `Percorso Benessere (${dur}) × ${people} people`,
+    price_each: 'each',
+    discount_row: 'Guest discount (kemonia)',
+    payment_method: 'Payment method',
+    pay_at_hotel: 'At the hotel',
+    total: 'Total', total_pay_hotel: 'Total (to pay at the hotel)',
+    kemonia_applied: (price) => `Code applied: €${price} per person (valid only for the 5pm slot).`,
+    kemonia_invalid_time: 'The "kemonia" code is only valid for the 5pm slot: it won\'t be applied here.',
+    pagdir_applied: 'Code applied: you\'ll pay directly at the hotel, no online payment required.',
+    prova_applied: 'Test code applied: free booking.',
+    code_invalid: 'Invalid code.',
+    pay_at_hotel_btn: 'Confirm booking (pay at hotel)',
+    pay_at_hotel_note: (price) => `PAGDIR code: you\'ll pay €${price} directly at the hotel.`,
+    test_note: 'Test code: no payment required.',
+    paypal_btn: (price) => `Pay €${price} with PayPal`,
+    paypal_preview_note: 'Preview mode: the real PayPal button will appear here once the site is published with a valid Client ID.',
+    paypal_error: 'There was a problem with PayPal. Please try again shortly.',
+    form_missing: 'Please fill in first name, last name, phone and email to continue.',
+    form_phone_invalid: 'Please enter a valid phone number (at least 8 digits).',
+    form_email_invalid: 'Please enter a valid email address.',
+    confirm_details: (date, time, dur, people, name, surname) => `${date} at ${time} (${dur}) · ${people} people · ${name} ${surname}`,
+    cancel_missing: 'Please enter the date and booking code.',
+    cancel_checking: 'Checking...',
+    cancel_not_found: 'No active booking found with this code for the given date and time.',
+    cancel_success: 'Booking cancelled. The spots are available again.'
+  }
+};
+function t(key){ return I18N[currentLang][key]; }
+
+let state = { date:null, dateLabel:null, time:null, dayData:null, people:1, duration:'50', selectedHours:[],
+  name:'', surname:'', phone:'', email:'', note:'', code:null, discountCode:null, closedDates:[] };
+let calMonth = { y:2026, m:7 };
+let adminCalMonth = { y:2026, m:7 };
+let adminPendingClosed = new Set();
+let adminPassword = null;
+
+function fmtDate(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function inRange(d){ return d >= START_DATE && d <= END_DATE; }
+function isClosedDate(d){ return state.closedDates.includes(fmtDate(d)); }
+
+function toIsoDateTime(dateStr, timeStr){ return `${dateStr}T${timeStr}:00`; }
+function addMinutesToTime(timeStr, minutes){
+  const [h,m] = timeStr.split(':').map(Number);
+  const d = new Date(2000,0,1,h,m);
+  d.setMinutes(d.getMinutes() + minutes);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
 }
 
-function buildCustomerEmail(data) {
-  const html = emailWrapper(
-    '<h1 style="font-family:Georgia, serif; font-size:22px; color:#23301F; margin:0 0 6px;">Prenotazione confermata</h1>' +
-    '<p style="font-family:Arial, sans-serif; font-size:14px; color:#45564A; margin:0 0 20px;">Gentile ' + data.nome + ' ' + data.cognome + ', ti aspettiamo per il tuo Percorso Benessere.</p>' +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #EEEDE4; border-bottom:1px solid #EEEDE4; padding:6px 0;">' +
-      rowHtml('Data', data.data) +
-      rowHtml('Orario', data.orario) +
-      rowHtml('Durata', data.durata_label) +
-      rowHtml('Persone', data.persone) +
-      (data.stato_pagamento === 'Da pagare in hotel'
-        ? rowHtml('Da pagare in hotel', data.prezzo_totale + ' &euro;')
-        : rowHtml('Totale pagato', data.prezzo_totale + ' &euro;')) +
-    '</table>' +
-    '<p style="font-family:Arial, sans-serif; font-size:12.5px; color:#59695A; margin:16px 0 0;">Conserva il codice qui sotto, ti sarà utile all\'arrivo:</p>' +
-    codeBlockHtml(data.codice) +
-    '<p style="font-family:Arial, sans-serif; font-size:13px; color:#45564A; text-align:center; margin-top:18px;">Ti aspettiamo!</p>'
-  );
-  const text = 'Prenotazione confermata\n\nData: ' + data.data + '\nOrario: ' + data.orario +
-    '\nDurata: ' + data.durata_label + '\nPersone: ' + data.persone +
-    '\nTotale: ' + data.prezzo_totale + ' EUR (' + data.stato_pagamento + ')' +
-    '\nCodice prenotazione: ' + data.codice + '\n\nTi aspettiamo!\nSPA Aloe - Grand Hotel Piazza Borsa';
-  MailApp.sendEmail(data.email, 'Prenotazione confermata - SPA Aloe', text, { htmlBody: html });
+async function sendToBackend(payload, maxAttempts = 3){
+  if(!CALENDAR_WEBHOOK_URL || CALENDAR_WEBHOOK_URL === 'INSERISCI_QUI_IL_TUO_WEBHOOK_URL') return false;
+  for(let attempt = 1; attempt <= maxAttempts; attempt++){
+    try{
+      await fetch(CALENDAR_WEBHOOK_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload)
+      });
+      return true;
+    }catch(e){
+      console.warn(`Tentativo ${attempt}/${maxAttempts} verso il backend fallito`, e);
+      if(attempt < maxAttempts) await new Promise(res => setTimeout(res, 1000 * attempt));
+    }
+  }
+  console.error('Invio al backend fallito dopo tutti i tentativi.');
+  return false;
 }
 
-function buildHotelEmail(data) {
-  const html = emailWrapper(
-    '<h1 style="font-family:Georgia, serif; font-size:20px; color:#23301F; margin:0 0 16px;">Nuova prenotazione Percorso Benessere</h1>' +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #EEEDE4; border-bottom:1px solid #EEEDE4; padding:6px 0;">' +
-      rowHtml('Cliente', data.nome + ' ' + data.cognome) +
-      rowHtml('Telefono', data.telefono) +
-      rowHtml('Email', data.email) +
-      rowHtml('Data', data.data) +
-      rowHtml('Orario', data.orario) +
-      rowHtml('Durata', data.durata_label) +
-      rowHtml('Persone', data.persone) +
-      rowHtml('Note', data.note || '-') +
-      rowHtml('Sconto', data.codice_sconto) +
-      rowHtml('Stato pagamento', data.stato_pagamento) +
-      rowHtml('Totale', data.prezzo_totale + ' &euro;') +
-    '</table>' +
-    codeBlockHtml(data.codice)
-  );
-  const text = 'Nuova prenotazione ricevuta\n\nCliente: ' + data.nome + ' ' + data.cognome +
-    '\nTelefono: ' + data.telefono + '\nEmail: ' + data.email + '\nData: ' + data.data +
-    '\nOrario: ' + data.orario + '\nDurata: ' + data.durata_label + '\nPersone: ' + data.persone +
-    '\nNote: ' + (data.note || '-') + '\nSconto: ' + data.codice_sconto +
-    '\nStato pagamento: ' + data.stato_pagamento + '\nTotale: ' + data.prezzo_totale + ' EUR' +
-    '\nCodice prenotazione: ' + data.codice;
-  MailApp.sendEmail(HOTEL_EMAILS, 'Nuova prenotazione Percorso Benessere - ' + data.cognome + ' ' + data.nome, text, { htmlBody: html });
+function fetchFromBackend(params){
+  return new Promise((resolve)=>{
+    if(!CALENDAR_WEBHOOK_URL || CALENDAR_WEBHOOK_URL === 'INSERISCI_QUI_IL_TUO_WEBHOOK_URL'){ resolve({}); return; }
+    const callbackName = 'cb_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    let done = false;
+    const cleanup = ()=>{ delete window[callbackName]; script.remove(); };
+    window[callbackName] = (data)=>{ done = true; cleanup(); resolve(data || {}); };
+    script.onerror = ()=>{ if(!done){ cleanup(); resolve({}); } };
+    const qs = new URLSearchParams({ ...params, callback: callbackName }).toString();
+    script.src = `${CALENDAR_WEBHOOK_URL}?${qs}`;
+    document.body.appendChild(script);
+    setTimeout(()=>{ if(!done){ cleanup(); resolve({}); } }, 6000);
+  });
 }
 
-function buildCancelEmail(data) {
-  const html = emailWrapper(
-    '<h1 style="font-family:Georgia, serif; font-size:20px; color:#B0562D; margin:0 0 16px;">Prenotazione cancellata</h1>' +
-    '<table width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #EEEDE4; border-bottom:1px solid #EEEDE4; padding:6px 0;">' +
-      rowHtml('Data', data.data) +
-      rowHtml('Orario', data.orario) +
-      rowHtml('Persone liberate', data.persone) +
-      rowHtml('Cognome cliente', data.cognome || '-') +
-    '</table>' +
-    codeBlockHtml(data.codice) +
-    '<p style="font-family:Arial, sans-serif; font-size:12.5px; color:#59695A; margin-top:16px;">Se era previsto un rimborso PayPal, effettualo dal Dashboard PayPal.</p>'
-  );
-  const text = 'Prenotazione cancellata\n\nData: ' + data.data + '\nOrario: ' + data.orario +
-    '\nPersone liberate: ' + data.persone + '\nCognome: ' + (data.cognome || '-') +
-    '\nCodice: ' + data.codice + '\n\nSe era previsto un rimborso PayPal, effettualo dal Dashboard PayPal.';
-  MailApp.sendEmail(HOTEL_EMAILS, 'Prenotazione CANCELLATA - ' + data.data + ' ore ' + data.orario, text, { htmlBody: html });
+/* ---------------- IMPOSTAZIONI (giorni chiusi) ---------------- */
+async function loadSettings(){
+  const res = await fetchFromBackend({ action:'settings' });
+  state.closedDates = res.closed_dates || [];
+  renderCalendar();
 }
 
-// Trova il sotto-calendario dedicato "Prenotazioni Aloe SPA" nell'account che esegue lo script
-// (deve essere piazzaborsa@piazzaborsa.it). Se non esiste ancora, lo crea automaticamente.
-function getAloeCalendar() {
-  const existing = CalendarApp.getCalendarsByName(CALENDAR_NAME);
-  if (existing.length > 0) return existing[0];
-  return CalendarApp.createCalendar(CALENDAR_NAME);
+/* ---------------- CALENDARIO ---------------- */
+function renderCalendarHeader(){ document.getElementById('calDow').innerHTML = DOW_BY_LANG[currentLang].map(d=>`<div class="cal-dow">${d}</div>`).join(''); }
+function renderCalendar(){
+  const {y,m} = calMonth;
+  document.getElementById('calMonthLabel').textContent = `${MONTHS_BY_LANG[currentLang][m]} ${y}`;
+  const first = new Date(y,m,1);
+  const startOffset = (first.getDay()+6)%7;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  let cells = [];
+  for(let i=0;i<startOffset;i++) cells.push(null);
+  for(let day=1; day<=daysInMonth; day++) cells.push(new Date(y,m,day));
+
+  const grid = document.getElementById('calGrid');
+  grid.innerHTML = cells.map(d=>{
+    if(!d) return `<div class="cal-day empty"></div>`;
+    const valid = inRange(d) && !isClosedDate(d);
+    const key = fmtDate(d);
+    const selected = state.date === key;
+    const cls = ['cal-day'];
+    if(!valid) cls.push('disabled');
+    if(selected) cls.push('selected');
+    return `<button type="button" class="${cls.join(' ')}" ${valid?'':'disabled'} data-date="${key}">${d.getDate()}</button>`;
+  }).join('');
+  grid.querySelectorAll('.cal-day:not(.disabled):not(.empty)').forEach(btn=> btn.addEventListener('click', ()=> selectDate(btn.dataset.date)));
+
+  const prevBtn = document.getElementById('calPrev'), nextBtn = document.getElementById('calNext');
+  prevBtn.disabled = new Date(y,m-1,1) < new Date(START_DATE.getFullYear(),START_DATE.getMonth(),1);
+  nextBtn.disabled = new Date(y,m+1,1) > new Date(END_DATE.getFullYear(),END_DATE.getMonth(),1);
+}
+document.getElementById('calPrev').addEventListener('click', ()=>{ calMonth.m--; if(calMonth.m<0){calMonth.m=11;calMonth.y--;} renderCalendar(); });
+document.getElementById('calNext').addEventListener('click', ()=>{ calMonth.m++; if(calMonth.m>11){calMonth.m=0;calMonth.y++;} renderCalendar(); });
+
+async function selectDate(dateKey){
+  state.date = dateKey;
+  const d = new Date(dateKey+'T00:00:00');
+  state.dateLabel = `${DOW_BY_LANG[currentLang][(d.getDay()+6)%7]} ${d.getDate()} ${MONTHS_BY_LANG[currentLang][d.getMonth()]}`;
+  state.time = null;
+  state.selectedHours = [];
+  renderCalendar();
+  renderSummary();
+  await loadDayAvailability(dateKey);
+  goToStep(2);
 }
 
-// Un percorso da 50 min occupa solo la sua fascia oraria; uno da 2 ore (120 min) occupa
-// anche la fascia successiva, perché satura la capienza per entrambe le ore.
-function bucketsFor(orario, durataMinuti) {
-  const buckets = [orario];
-  if (durataMinuti > 60) {
-    const parts = orario.split(':');
-    const h = (parseInt(parts[0], 10) + 1) % 24;
-    buckets.push(('0' + h).slice(-2) + ':' + parts[1]);
+/* ---------------- DISPONIBILITÀ / ORARI (fasce a flag) ---------------- */
+async function loadDayAvailability(dateKey){
+  const flagsEl = document.getElementById('hourFlags');
+  const slotStatus = document.getElementById('slotStatus');
+  slotStatus.textContent = t('checking_avail');
+  flagsEl.innerHTML = SLOTS.map(()=> `<div class="hour-flag skeleton" style="color:transparent;">00:00</div>`).join('');
+
+  const dayData = await fetchFromBackend({ action:'check', date: dateKey });
+  state.dayData = dayData;
+  renderHourFlags();
+  const allFull = SLOTS.every(s=> dayData[s] && dayData[s].count >= CAPACITY);
+  slotStatus.textContent = allFull ? t('all_full') : '';
+}
+function bucketsFor(time, durationId){
+  const buckets = [time];
+  if(DURATIONS[durationId].minutes > 60){
+    buckets.push(addMinutesToTime(time, 60));
   }
   return buckets;
 }
-
-function doPost(e) {
-  const data = JSON.parse(e.postData.contents);
-  const props = PropertiesService.getScriptProperties();
-  const calendar = getAloeCalendar();
-
-  // --- admin: impostazione date chiuse ---
-  if (data.tipo_evento === 'admin_set_closed_dates') {
-    const storedPassword = props.getProperty('admin_password') || ADMIN_PASSWORD_DEFAULT;
-    if (data.password === storedPassword) {
-      props.setProperty('closed_dates', JSON.stringify(data.closed_dates || []));
-    }
-    return ContentService.createTextOutput('ok');
-  }
-
-  // --- cancellazione ---
-  if (data.tipo_evento === 'cancellazione') {
-    const lock = LockService.getScriptLock();
-    lock.waitLock(10000);
-    try {
-      const dayKey = 'day:' + data.data;
-      const existing = props.getProperty(dayKey);
-      if (existing) {
-        const dayData = JSON.parse(existing);
-        const slot = dayData[data.orario];
-        const booking = slot && slot.bookings ? slot.bookings.find(function (b) { return b.code === data.codice; }) : null;
-        if (booking) {
-          const durata = booking.durata_minuti || 50;
-          const buckets = bucketsFor(data.orario, durata);
-          buckets.forEach(function (b) {
-            const bucket = dayData[b];
-            if (!bucket || !bucket.bookings) return;
-            const idx = bucket.bookings.findIndex(function (x) { return x.code === data.codice; });
-            if (idx >= 0) {
-              bucket.count -= bucket.bookings[idx].people;
-              bucket.bookings.splice(idx, 1);
-            }
-          });
-          props.setProperty(dayKey, JSON.stringify(dayData));
-        }
-      }
-    } finally {
-      lock.releaseLock();
-    }
-
-    const eventId = props.getProperty('evt_' + data.codice);
-    if (eventId) {
-      try {
-        const ev = calendar.getEventById(eventId);
-        if (ev) ev.deleteEvent();
-      } catch (err) { /* evento già rimosso */ }
-    }
-    buildCancelEmail(data);
-    return ContentService.createTextOutput('ok');
-  }
-
-  // --- nuova prenotazione ---
-  const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  let accepted = false;
-  try {
-    const dayKey = 'day:' + data.data_iso;
-    let dayData = {};
-    const existingDay = props.getProperty(dayKey);
-    if (existingDay) dayData = JSON.parse(existingDay);
-
-    const buckets = bucketsFor(data.orario, data.durata_minuti || 50);
-    buckets.forEach(function (b) {
-      if (!dayData[b]) dayData[b] = { count: 0, bookings: [] };
-    });
-
-    // capienza disponibile = il minimo tra tutte le fasce coinvolte (per un percorso da 2 ore
-    // servono posti liberi sia nell'ora di inizio sia in quella successiva)
-    const remaining = Math.min.apply(null, buckets.map(function (b) { return CAPACITY - dayData[b].count; }));
-
-    if (data.persone <= remaining) {
-      buckets.forEach(function (b) {
-        dayData[b].count += data.persone;
-        dayData[b].bookings.push({ code: data.codice, people: data.persone, surname: data.cognome, durata_minuti: data.durata_minuti || 50 });
-      });
-      props.setProperty(dayKey, JSON.stringify(dayData));
-      accepted = true;
-    }
-  } finally {
-    lock.releaseLock();
-  }
-
-  if (!accepted) {
-    // posti non più sufficienti (rarissimo, solo in caso di prenotazioni quasi simultanee)
-    return ContentService.createTextOutput('full');
-  }
-
-  const start = new Date(data.inizio_iso);
-  const end = new Date(data.fine_iso);
-  const pagamentoPrefix = data.stato_pagamento === 'Da pagare in hotel' ? '[DA PAGARE] ' : '';
-  const titolo = pagamentoPrefix + 'ALOE - Percorso Benessere (' + data.persone + ' pers.) - ' + data.cognome + ' ' + data.nome;
-  const descrizione =
-    'Persone: ' + data.persone +
-    '\nDurata: ' + (data.durata_minuti || 50) + ' min' +
-    '\nTel: ' + data.telefono +
-    '\nEmail: ' + data.email +
-    '\nNote: ' + (data.note || '-') +
-    '\nSconto: ' + (data.codice_sconto || '-') +
-    '\nStato pagamento: ' + (data.stato_pagamento || 'Pagato online') +
-    '\nTotale: ' + data.prezzo_totale + ' €' +
-    '\nCodice prenotazione: ' + data.codice;
-
-  const evento = calendar.createEvent(titolo, start, end, { description: descrizione });
-  evento.setColor(CalendarApp.EventColor.GREEN);
-  props.setProperty('evt_' + data.codice, evento.getId());
-
-  buildHotelEmail(data);
-  if (data.email) {
-    buildCustomerEmail(data);
-  }
-
-  return ContentService.createTextOutput('ok');
+function standaloneRemaining(time){
+  const slot = state.dayData && state.dayData[time];
+  const count = slot ? slot.count : 0;
+  return Math.max(0, CAPACITY - count);
+}
+function remainingFor(time){
+  const buckets = bucketsFor(time, state.duration);
+  return Math.min(...buckets.map(standaloneRemaining));
 }
 
-function doGet(e) {
-  const callback = e.parameter.callback || 'callback';
-  const action = e.parameter.action;
-  const props = PropertiesService.getScriptProperties();
-  let result = {};
+function renderHourFlags(){
+  const flagsEl = document.getElementById('hourFlags');
+  flagsEl.innerHTML = SLOTS.map(s=>{
+    const remaining = standaloneRemaining(s);
+    const full = remaining <= 0;
+    const checked = state.selectedHours.includes(s);
+    const cls = ['hour-flag'];
+    if(checked) cls.push('checked');
+    if(full) cls.push('disabled');
+    return `<label class="${cls.join(' ')}" data-hour="${s}">
+      <input type="checkbox" ${checked?'checked':''} ${full?'disabled':''}>
+      <span><span class="htime">${s}</span><small class="havail">${full ? t('seats_full') : remaining + ' ' + t('seats_free')}</small></span>
+    </label>`;
+  }).join('');
+  flagsEl.querySelectorAll('.hour-flag:not(.disabled)').forEach(el=>{
+    el.addEventListener('click', (e)=>{ e.preventDefault(); toggleHour(el.dataset.hour); });
+  });
+  updateOrarioSelectionUI();
+}
 
-  if (action === 'settings') {
-    const closed = props.getProperty('closed_dates');
-    result = { closed_dates: closed ? JSON.parse(closed) : [] };
-  } else if (action === 'admin_check') {
-    const storedPassword = props.getProperty('admin_password') || ADMIN_PASSWORD_DEFAULT;
-    result = { ok: e.parameter.password === storedPassword };
+function toggleHour(hour){
+  const idx = state.selectedHours.indexOf(hour);
+  if(idx >= 0){
+    state.selectedHours.splice(idx,1);
   } else {
-    const dateKey = e.parameter.date;
-    if (dateKey) {
-      const existing = props.getProperty('day:' + dateKey);
-      result = existing ? JSON.parse(existing) : {};
+    state.selectedHours.push(hour);
+    if(state.selectedHours.length > 2){
+      state.selectedHours.shift(); // tieni solo le ultime 2 selezionate
+    }
+    if(state.selectedHours.length === 2){
+      const sorted = [...state.selectedHours].sort();
+      const [a,b] = sorted;
+      const adjacent = addMinutesToTime(a,60) === b;
+      if(!adjacent){
+        // due fasce non consecutive: tieni solo quella appena cliccata
+        state.selectedHours = [hour];
+      }
     }
   }
-
-  return ContentService.createTextOutput(callback + '(' + JSON.stringify(result) + ')')
-    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  renderHourFlags();
 }
 
-/**
- * Lancia questa funzione UNA VOLTA per impostare/cambiare la password dell'area gestione,
- * invece di lasciare quella di default scritta nel codice.
- * 1. Cambia 'la-tua-nuova-password' qui sotto con quella che vuoi usare
- * 2. Seleziona "impostaPasswordAdmin" dal menu a tendina vicino a "Esegui" -> Esegui
- */
-function impostaPasswordAdmin() {
-  PropertiesService.getScriptProperties().setProperty('admin_password', 'la-tua-nuova-password');
-  Logger.log('Password admin aggiornata.');
-}
+function updateOrarioSelectionUI(){
+  const summaryEl = document.getElementById('selectionSummary');
+  const kemoniaEl = document.getElementById('kemoniaNote');
+  const continueBtn = document.getElementById('toOrarioContinueBtn');
 
-/**
- * Funzione di pulizia dei dati di test — cancella tutte le prenotazioni fatte finora
- * (eventi calendario compresi) e azzera le disponibilità. NON tocca i giorni chiusi impostati.
- * Lanciala selezionando "resetTuttiIDati" dal menu vicino a "Esegui".
- */
-function resetTuttiIDati() {
-  const props = PropertiesService.getScriptProperties();
-  const all = props.getProperties();
-  const calendar = getAloeCalendar();
-  let eventiRimossi = 0;
-
-  for (const key in all) {
-    if (key.indexOf('evt_') === 0) {
-      try {
-        const ev = calendar.getEventById(all[key]);
-        if (ev) { ev.deleteEvent(); eventiRimossi++; }
-      } catch (err) { /* evento già rimosso */ }
-    }
-    if (key.indexOf('evt_') === 0 || key.indexOf('day:') === 0) {
-      props.deleteProperty(key);
-    }
+  if(state.selectedHours.length === 0){
+    summaryEl.style.display = 'none';
+    kemoniaEl.style.display = 'none';
+    continueBtn.disabled = true;
+    return;
   }
 
-  Logger.log('Rimossi ' + eventiRimossi + ' eventi di test. Disponibilità azzerate. Giorni chiusi invariati.');
+  const sorted = [...state.selectedHours].sort();
+  const startTime = sorted[0];
+  const durationId = sorted.length === 2 ? '120' : '50';
+  const endTime = addMinutesToTime(startTime, DURATIONS[durationId].minutes);
+  const remaining = remainingFor(startTime);
+
+  summaryEl.style.display = 'block';
+  summaryEl.innerHTML = remaining > 0
+    ? t('selected_summary')(t('duration_label_'+durationId), startTime, endTime, remaining)
+    : `<span style="color:#B0562D;">${t('selected_full')}</span>`;
+
+  kemoniaEl.style.display = (startTime === '17:00' && remaining > 0) ? 'block' : 'none';
+  continueBtn.disabled = remaining <= 0;
+
+  continueBtn.onclick = ()=>{
+    state.time = startTime;
+    state.duration = durationId;
+    state.people = 1;
+    renderSummary();
+    goToStep(3);
+    setupPeopleStepper();
+  };
 }
+
+/* ---------------- PERSONE ---------------- */
+function setupPeopleStepper(){
+  const remaining = remainingFor(state.time);
+  document.getElementById('peopleCount').textContent = state.people;
+  document.getElementById('peopleAvail').textContent = `${remaining} posti liberi in questo turno.`;
+  document.getElementById('peopleMinus').disabled = state.people <= 1;
+  document.getElementById('peoplePlus').disabled = state.people >= remaining;
+}
+document.getElementById('peopleMinus').addEventListener('click', ()=>{ if(state.people>1){ state.people--; setupPeopleStepper(); } });
+document.getElementById('peoplePlus').addEventListener('click', ()=>{ if(state.people < remainingFor(state.time)){ state.people++; setupPeopleStepper(); } });
+document.getElementById('toContactBtn').addEventListener('click', ()=>{ renderSummary(); goToStep(4); });
+
+/* ---------------- DATI CLIENTE ---------------- */
+document.getElementById('toPaymentBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('fName').value.trim();
+  const surname = document.getElementById('fSurname').value.trim();
+  const phone = document.getElementById('fPhone').value.trim();
+  const email = document.getElementById('fEmail').value.trim();
+  const note = document.getElementById('fNote').value.trim();
+  const formStatus = document.getElementById('formStatus');
+
+  if(!name || !surname || !phone || !email){ formStatus.textContent = t('form_missing'); return; }
+  const phoneDigits = phone.replace(/[^0-9]/g,'');
+  if(phoneDigits.length < 8){ formStatus.textContent = t('form_phone_invalid'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ formStatus.textContent = t('form_email_invalid'); return; }
+
+  formStatus.textContent = '';
+  state.name = name; state.surname = surname; state.phone = phone; state.email = email; state.note = note;
+  renderSummary();
+  renderPriceSummary();
+  goToStep(5);
+  setupPayment();
+});
+
+/* ---------------- PREZZO / SCONTO ---------------- */
+function pricePerPerson(){
+  const d = DURATIONS[state.duration];
+  if(state.discountCode === 'KEMONIA' && state.time === '17:00') return d.priceKemonia17;
+  return d.priceStandard;
+}
+function finalPrice(){ return pricePerPerson() * state.people; }
+
+document.getElementById('applyDiscountBtn').addEventListener('click', ()=>{
+  const raw = document.getElementById('fDiscount').value.trim().toUpperCase();
+  const statusEl = document.getElementById('discountStatus');
+  if(!raw){ state.discountCode = null; statusEl.textContent = ''; }
+  else if(raw === 'KEMONIA'){
+    state.discountCode = 'KEMONIA';
+    if(state.time === '17:00'){
+      statusEl.textContent = t('kemonia_applied')(DURATIONS[state.duration].priceKemonia17);
+      statusEl.style.color = '#3F6B4B';
+    } else {
+      statusEl.textContent = t('kemonia_invalid_time');
+      statusEl.style.color = '#B0562D';
+    }
+  } else if(raw === 'PAGDIR'){
+    state.discountCode = 'PAGDIR';
+    statusEl.textContent = t('pagdir_applied');
+    statusEl.style.color = '#3F6B4B';
+  } else if(raw === 'PROVA100'){
+    state.discountCode = 'PROVA100';
+    statusEl.textContent = t('prova_applied');
+    statusEl.style.color = '#3F6B4B';
+  } else {
+    state.discountCode = null;
+    statusEl.textContent = t('code_invalid');
+    statusEl.style.color = '#B0562D';
+  }
+  renderPriceSummary();
+  setupPayment();
+});
+
+function renderPriceSummary(){
+  const perPerson = state.discountCode === 'PROVA100' ? 0 : pricePerPerson();
+  const total = state.discountCode === 'PROVA100' ? 0 : finalPrice();
+  const payAtHotel = state.discountCode === 'PAGDIR';
+  const durLabel = t('duration_label_'+state.duration);
+  let rows = `
+    <div class="row"><span>${t('price_row_label')(durLabel, state.people)}</span><span>${perPerson.toFixed(2)} € ${t('price_each')}</span></div>
+    <div class="row"><span>${state.dateLabel}, ${state.time}</span><span></span></div>`;
+  if(state.discountCode === 'KEMONIA' && state.time === '17:00'){
+    rows += `<div class="row"><span>${t('discount_row')}</span><span>-${((DURATIONS[state.duration].priceStandard - DURATIONS[state.duration].priceKemonia17) * state.people).toFixed(2)} €</span></div>`;
+  }
+  if(payAtHotel){
+    rows += `<div class="row"><span>${t('payment_method')}</span><span>${t('pay_at_hotel')}</span></div>`;
+  }
+  rows += `<div class="row total"><span>${payAtHotel ? t('total_pay_hotel') : t('total')}</span><span>${total.toFixed(2)} €</span></div>`;
+  document.getElementById('priceSummary').innerHTML = rows;
+}
+
+/* ---------------- RIEPILOGO ---------------- */
+function renderSummary(){
+  const chips = [];
+  if(state.date) chips.push(`<div class="chip" data-goto="1">${t('step_data')}: <b>${state.dateLabel}</b></div>`);
+  if(state.time) chips.push(`<div class="chip" data-goto="2">${t('duration_label_'+state.duration)} · <b>${state.time}</b></div>`);
+  if(state.time) chips.push(`<div class="chip" data-goto="3">${t('step_persone')}: <b>${state.people}</b></div>`);
+  document.getElementById('summaryStrip').innerHTML = chips.join('');
+  document.querySelectorAll('.chip').forEach(c=> c.addEventListener('click', ()=> goToStep(parseInt(c.dataset.goto))));
+}
+
+/* ---------------- NAVIGAZIONE STEP ---------------- */
+function goToStep(n){
+  document.querySelectorAll('#booking .step-panel').forEach(p=> p.classList.remove('visible'));
+  document.querySelector(`#booking .step-panel[data-panel="${n}"]`).classList.add('visible');
+  document.querySelectorAll('.steps-nav span').forEach(s=> s.classList.toggle('active', parseInt(s.dataset.step)===n));
+  document.getElementById('booking').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+/* ---------------- PAGAMENTO ---------------- */
+function setupPayment(){
+  const container = document.getElementById('paypal-button-container');
+  const previewBtn = document.getElementById('previewPayBtn');
+  const freeBtn = document.getElementById('freeConfirmBtn');
+  const note = document.getElementById('paypalNote');
+  container.innerHTML = ''; previewBtn.style.display = 'none'; freeBtn.style.display = 'none'; note.textContent = '';
+
+  const fp = state.discountCode === 'PROVA100' ? 0 : finalPrice();
+  const payAtHotel = state.discountCode === 'PAGDIR';
+
+  if(fp <= 0 || payAtHotel){
+    freeBtn.style.display = 'inline-block';
+    if(payAtHotel){
+      freeBtn.textContent = t('pay_at_hotel_btn');
+      note.textContent = t('pay_at_hotel_note')(fp.toFixed(2));
+    } else {
+      freeBtn.textContent = t('free_confirm_btn');
+      note.textContent = t('test_note');
+    }
+    freeBtn.onclick = async ()=>{ await finalizeBooking(); };
+    return;
+  }
+
+  if(window.paypal && window.paypal.Buttons){
+    window.paypal.Buttons({
+      style:{ layout:'vertical', color:'gold', shape:'pill', label:'paypal' },
+      createOrder: (data, actions) => actions.order.create({
+        purchase_units: [{ amount: { value: fp.toFixed(2), currency_code: 'EUR' },
+          description: `Percorso Benessere SPA Aloe - ${state.people} pers. - ${state.dateLabel} ore ${state.time}` }]
+      }),
+      onApprove: async (data, actions) => { await actions.order.capture(); await finalizeBooking(); },
+      onError: () => { note.textContent = t('paypal_error'); }
+    }).render('#paypal-button-container');
+  } else {
+    previewBtn.style.display = 'inline-block';
+    previewBtn.textContent = t('paypal_btn')(fp.toFixed(2));
+    note.textContent = t('paypal_preview_note');
+    previewBtn.onclick = async ()=>{ await finalizeBooking(); };
+  }
+}
+
+async function finalizeBooking(){
+  const code = 'ALO-' + Math.random().toString(36).slice(2,7).toUpperCase();
+  state.code = code;
+  const perPerson = state.discountCode === 'PROVA100' ? 0 : pricePerPerson();
+  const total = state.discountCode === 'PROVA100' ? 0 : finalPrice();
+  const durataMinuti = DURATIONS[state.duration].minutes;
+  const payAtHotel = state.discountCode === 'PAGDIR';
+
+  const ok = await sendToBackend({
+    tipo_evento: 'prenotazione',
+    codice: code,
+    cognome: state.surname,
+    nome: state.name,
+    telefono: state.phone,
+    email: state.email,
+    note: state.note,
+    persone: state.people,
+    data: state.dateLabel,
+    data_iso: state.date,
+    orario: state.time,
+    inizio_iso: toIsoDateTime(state.date, state.time),
+    fine_iso: toIsoDateTime(state.date, addMinutesToTime(state.time, durataMinuti)),
+    durata_minuti: durataMinuti,
+    durata_label: DURATIONS[state.duration].labelIt,
+    prezzo_persona: perPerson,
+    prezzo_totale: total.toFixed(2),
+    codice_sconto: state.discountCode || '-',
+    stato_pagamento: payAtHotel ? 'Da pagare in hotel' : 'Pagato online'
+  });
+
+  document.getElementById('confirmCode').textContent = code;
+  document.getElementById('confirmDetails').textContent = t('confirm_details')(state.dateLabel, state.time, t('duration_label_'+state.duration), state.people, state.name, state.surname);
+  goToStep('confirm');
+
+  state.discountCode = null;
+  document.getElementById('fDiscount').value = '';
+  document.getElementById('discountStatus').textContent = '';
+}
+
+/* ---------------- CANCELLAZIONE (widget compatto) ---------------- */
+document.getElementById('cancelToggleBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('cancelToggleBtn');
+  const body = document.getElementById('cancelBody');
+  const open = body.classList.toggle('open');
+  btn.classList.toggle('open', open);
+});
+
+document.getElementById('cancelBtn').addEventListener('click', async ()=>{
+  const dateKey = document.getElementById('cancelDate').value;
+  const time = document.getElementById('cancelTime').value;
+  const enteredCode = document.getElementById('cancelCode').value.trim().toUpperCase();
+  const statusEl = document.getElementById('cancelStatus');
+
+  if(!dateKey || !enteredCode){ statusEl.textContent = t('cancel_missing'); statusEl.style.color = '#B0562D'; return; }
+  statusEl.textContent = t('cancel_checking'); statusEl.style.color = '';
+
+  const dayData = await fetchFromBackend({ action:'check', date: dateKey });
+  const slot = dayData && dayData[time];
+  const booking = slot && slot.bookings ? slot.bookings.find(b => b.code === enteredCode) : null;
+  if(!booking){ statusEl.textContent = t('cancel_not_found'); statusEl.style.color = '#B0562D'; return; }
+
+  await sendToBackend({
+    tipo_evento: 'cancellazione',
+    codice: enteredCode,
+    data: dateKey,
+    orario: time,
+    persone: booking.people,
+    cognome: booking.surname || ''
+  });
+
+  statusEl.textContent = t('cancel_success');
+  statusEl.style.color = '#3F6B4B';
+  document.getElementById('cancelCode').value = '';
+});
+
+/* ---------------- ADMIN: ACCESSO NASCOSTO ---------------- */
+// La sezione gestione è nascosta di default: si vede solo aggiungendo ?gestione=1 all'indirizzo del sito,
+// e comunque richiede la password prima di mostrare qualunque controllo.
+if (new URLSearchParams(location.search).get('gestione') === '1') {
+  document.getElementById('admin').style.display = '';
+}
+
+document.getElementById('adminLoginBtn').addEventListener('click', async ()=>{
+  const password = document.getElementById('adminPassword').value;
+  const statusEl = document.getElementById('adminLoginStatus');
+  if(!password){ statusEl.textContent = 'Inserisci la password.'; statusEl.style.color = '#B0562D'; return; }
+  statusEl.textContent = 'Verifico...'; statusEl.style.color = '';
+
+  const res = await fetchFromBackend({ action:'admin_check', password });
+  if(res && res.ok){
+    adminPassword = password;
+    document.getElementById('adminLoginBox').style.display = 'none';
+    document.getElementById('adminPanel').style.display = 'block';
+    adminPendingClosed = new Set(state.closedDates);
+    renderAdminCalendarHeader();
+    renderAdminCalendar();
+  } else {
+    statusEl.textContent = 'Password errata.';
+    statusEl.style.color = '#B0562D';
+  }
+});
+
+function renderAdminCalendarHeader(){ document.getElementById('adminCalDow').innerHTML = DOW_BY_LANG[currentLang].map(d=>`<div class="cal-dow">${d}</div>`).join(''); }
+function renderAdminCalendar(){
+  const {y,m} = adminCalMonth;
+  document.getElementById('adminCalMonthLabel').textContent = `${MONTHS_BY_LANG[currentLang][m]} ${y}`;
+  const first = new Date(y,m,1);
+  const startOffset = (first.getDay()+6)%7;
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  let cells = [];
+  for(let i=0;i<startOffset;i++) cells.push(null);
+  for(let day=1; day<=daysInMonth; day++) cells.push(new Date(y,m,day));
+
+  const grid = document.getElementById('adminCalGrid');
+  grid.innerHTML = cells.map(d=>{
+    if(!d) return `<div class="cal-day empty"></div>`;
+    const valid = inRange(d);
+    const key = fmtDate(d);
+    const closed = adminPendingClosed.has(key);
+    const cls = ['cal-day'];
+    if(!valid) cls.push('disabled');
+    if(closed) cls.push('closed-admin');
+    return `<button type="button" class="${cls.join(' ')}" ${valid?'':'disabled'} data-date="${key}">${d.getDate()}</button>`;
+  }).join('');
+  grid.querySelectorAll('.cal-day:not(.disabled):not(.empty)').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const key = btn.dataset.date;
+      if(adminPendingClosed.has(key)) adminPendingClosed.delete(key); else adminPendingClosed.add(key);
+      renderAdminCalendar();
+    });
+  });
+
+  const prevBtn = document.getElementById('adminCalPrev'), nextBtn = document.getElementById('adminCalNext');
+  prevBtn.disabled = new Date(y,m-1,1) < new Date(START_DATE.getFullYear(),START_DATE.getMonth(),1);
+  nextBtn.disabled = new Date(y,m+1,1) > new Date(END_DATE.getFullYear(),END_DATE.getMonth(),1);
+}
+document.getElementById('adminCalPrev').addEventListener('click', ()=>{ adminCalMonth.m--; if(adminCalMonth.m<0){adminCalMonth.m=11;adminCalMonth.y--;} renderAdminCalendar(); });
+document.getElementById('adminCalNext').addEventListener('click', ()=>{ adminCalMonth.m++; if(adminCalMonth.m>11){adminCalMonth.m=0;adminCalMonth.y++;} renderAdminCalendar(); });
+
+document.getElementById('adminSaveBtn').addEventListener('click', async ()=>{
+  const statusEl = document.getElementById('adminStatus');
+  statusEl.textContent = 'Salvataggio in corso...'; statusEl.style.color = '';
+  const closedDates = Array.from(adminPendingClosed);
+
+  await sendToBackend({ tipo_evento: 'admin_set_closed_dates', password: adminPassword, closed_dates: closedDates });
+
+  setTimeout(async ()=>{
+    await loadSettings();
+    adminPendingClosed = new Set(state.closedDates);
+    renderAdminCalendar();
+    statusEl.textContent = 'Fatto — date salvate e calendario clienti aggiornato.';
+    statusEl.style.color = '#3F6B4B';
+  }, 1500);
+});
+
+/* ---------------- LINGUA: applicazione traduzioni ---------------- */
+function applyStaticTranslations(){
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i18n'));
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+    el.innerHTML = t(el.getAttribute('data-i18n-html'));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+  });
+  document.documentElement.lang = currentLang;
+}
+
+function setLang(lang){
+  currentLang = lang;
+  document.querySelectorAll('#langToggle button').forEach(b=> b.classList.toggle('active', b.dataset.lang === lang));
+  applyStaticTranslations();
+  // ri-renderizza tutte le parti generate dinamicamente, se già popolate
+  renderCalendarHeader();
+  renderCalendar();
+  if(state.date){ renderHourFlags(); }
+  renderSummary();
+  const priceSummaryEl = document.getElementById('priceSummary');
+  if(priceSummaryEl && priceSummaryEl.innerHTML.trim()){ renderPriceSummary(); }
+}
+
+document.querySelectorAll('#langToggle button').forEach(btn=>{
+  btn.addEventListener('click', ()=> setLang(btn.dataset.lang));
+});
+
+/* ---------------- INIT ---------------- */
+applyStaticTranslations();
+renderCalendarHeader();
+renderCalendar();
+goToStep(1);
+loadSettings();
+
+(function loadPaypalSdk(){
+  const s = document.createElement('script');
+  s.src = 'https://www.paypal.com/sdk/js?client-id=INSERISCI_QUI_IL_TUO_PAYPAL_CLIENT_ID&currency=EUR';
+  s.onerror = ()=>{ /* fallback gestito in setupPayment() */ };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
