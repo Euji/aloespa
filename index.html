@@ -130,6 +130,22 @@
   .stepper .count{ font-family:'Cinzel',serif; font-size:32px; min-width:50px; text-align:center; }
   .stepper-note{ margin-top:10px; }
 
+  /* addon Smart Relax */
+  .addon-box{ background:var(--linen); border:1px dashed var(--sage); border-radius:14px; padding:16px 18px; margin-top:22px; }
+  .addon-toggle{ display:flex; align-items:flex-start; gap:12px; cursor:pointer; font-weight:600; font-size:14.5px; color:var(--ink); }
+  .addon-toggle input{ width:18px; height:18px; accent-color:var(--deep); margin-top:2px; flex-shrink:0; }
+  .addon-box .hint{ margin:6px 0 0 30px; }
+  .addon-options{ margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+  .addon-zone-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .zone-choice{ display:flex; align-items:center; gap:8px; background:var(--cream); border:1.5px solid var(--line); border-radius:10px; padding:10px 14px; cursor:pointer; font-size:13.5px; user-select:none; }
+  .zone-choice input{ accent-color:var(--deep); }
+  .zone-choice.checked{ background:var(--sage-light); border-color:var(--sage); }
+  .addon-stepper{ gap:14px; }
+  .addon-stepper button{ width:36px; height:36px; border-radius:50%; border:1px solid var(--line); background:var(--cream); font-size:17px; cursor:pointer; color:var(--ink); }
+  .addon-stepper button:disabled{ opacity:.35; cursor:not-allowed; }
+  .addon-stepper .count{ font-family:'Cinzel',serif; font-size:22px; min-width:34px; text-align:center; }
+  .addon-people-label{ font-size:12.5px; color:var(--ink-soft); font-weight:600; margin-bottom:8px; }
+
   /* form */
   .form-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
   @media (max-width:520px){ .form-grid{ grid-template-columns:1fr; } }
@@ -198,7 +214,7 @@
   </div>
   <div class="eyebrow">SPA ALOE · GRAND HOTEL PIAZZA BORSA</div>
   <h1 data-i18n-html="hero_title">Un percorso di <em>quiete condivisa</em>,<br>fino a sei persone alla volta.</h1>
-  <p class="sub" data-i18n="hero_sub">Aperto anche a chi non alloggia in hotel. 50 minuti di percorso benessere, tra le 17:00 e le 20:00.</p>
+  <p class="sub" data-i18n="hero_sub">Aperto anche a chi non alloggia in hotel. 60 minuti di percorso benessere, tra le 17:00 e le 20:00.</p>
 
   <div class="ripples" aria-hidden="true">
     <svg viewBox="0 0 220 220">
@@ -213,7 +229,7 @@
     </svg>
   </div>
 
-  <a href="#booking" class="cta-btn" data-i18n="cta_book">Prenota il percorso</a>
+  <a href="#booking" class="cta-btn" data-i18n="cta_book">Prenoti il percorso</a>
 </header>
 
 <main class="wrap">
@@ -229,7 +245,7 @@
         <h3>Percorso Benessere SPA Aloe</h3>
         <p data-i18n="product_desc">Un unico percorso condiviso, pensato per essere vissuto in compagnia — da soli o fino a sei persone insieme.</p>
         <div class="product-meta">
-          <span data-i18n-html="product_meta_duration"><b>50 min</b></span>
+          <span data-i18n-html="product_meta_duration"><b>60 min</b></span>
           <span data-i18n-html="product_meta_price"><b>35 €</b> a persona</span>
           <span data-i18n-html="product_meta_capacity">fino a <b>6 persone</b> per turno</span>
           <span data-i18n-html="product_meta_external">anche per <b>esterni</b></span>
@@ -238,11 +254,23 @@
     </div>
   </section>
 
+  <section class="block" id="altri-servizi" style="padding:0 0 60px;">
+    <div class="product-card">
+      <div class="ring"></div>
+      <div class="info">
+        <div class="eyebrow" data-i18n="services_eyebrow">ANCHE ALLA SPA</div>
+        <h3 data-i18n="services_title">Scopri gli altri trattamenti</h3>
+        <p data-i18n="services_desc">Massaggi, trattamenti viso e rituali dedicati: consulti il listino completo e si rivolga alla reception per prenotarli.</p>
+        <a href="listino-aloe-spa.pdf" target="_blank" rel="noopener" class="cta-btn" style="background:var(--deep); color:#FFFFFF; display:inline-block;" data-i18n="services_link_label">Vedi il listino prezzi</a>
+      </div>
+    </div>
+  </section>
+
   <section class="block" id="booking">
     <div class="section-head">
       <div class="eyebrow" data-i18n="booking_eyebrow">LA PRENOTAZIONE</div>
       <h2 data-i18n="booking_title">Scegli data, orario e quante persone</h2>
-      <p data-i18n="booking_desc">Ogni turno ha 6 posti condivisi: puoi prenotarne da 1 a 6, in base a quanti sono ancora liberi.</p>
+      <p data-i18n="booking_desc">Ogni turno ha 6 posti condivisi: può prenotarne da 1 a 6, in base a quanti sono ancora liberi.</p>
     </div>
 
     <div class="booking-card">
@@ -250,7 +278,7 @@
         <span data-step="1" data-i18n="step_data">Data</span>
         <span data-step="2" data-i18n="step_orario">Orario</span>
         <span data-step="3" data-i18n="step_persone">Persone</span>
-        <span data-step="4" data-i18n="step_dati">I tuoi dati</span>
+        <span data-step="4" data-i18n="step_dati">I Suoi dati</span>
         <span data-step="5" data-i18n="step_pagamento">Pagamento</span>
       </div>
 
@@ -258,7 +286,7 @@
 
       <!-- STEP 1: DATA -->
       <div class="step-panel" data-panel="1">
-        <h3 data-i18n="step1_title">Quando vuoi venire?</h3>
+        <h3 data-i18n="step1_title">Quando desidera venire?</h3>
         <p class="hint" id="calHint" data-i18n="step1_hint">Dal 3 agosto al 30 settembre 2026.</p>
         <div class="cal-nav">
           <button id="calPrev" aria-label="Mese precedente">‹</button>
@@ -270,35 +298,57 @@
         <div class="cal-legend" data-i18n="cal_legend">Le celle chiare non sono prenotabili (giorno chiuso o fuori stagione).</div>
       </div>
 
-      <!-- STEP 2: ORARIO (flag delle fasce: una = 50 min, due consecutive = 2 ore) -->
+      <!-- STEP 2: ORARIO (flag delle fasce: una = 60 min, due consecutive = 90 min) -->
       <div class="step-panel" data-panel="2">
         <h3 data-i18n="step2_title">A che ora?</h3>
-        <p class="hint" data-i18n-html="step2_hint">Seleziona <b>una fascia</b> per il percorso da 50 minuti, oppure <b>due fasce consecutive</b> per il percorso da 2 ore.</p>
+        <p class="hint" data-i18n-html="step2_hint">Selezioni <b>una fascia</b> per il percorso da 60 minuti, oppure <b>due fasce consecutive</b> per il percorso da 90 minuti.</p>
         <div class="hour-flags" id="hourFlags"></div>
         <div class="status-msg" id="slotStatus"></div>
         <div class="selection-summary" id="selectionSummary" style="display:none;"></div>
         <div class="kemonia-note" id="kemoniaNote" style="display:none;" data-i18n="kemonia_note">
-          Alloggi in hotel? Chiedi il codice sconto in reception per il percorso delle 17:00.
+          Alloggia in hotel? Chieda il codice sconto in reception per il percorso delle 17:00.
         </div>
-        <button class="primary-btn" id="toOrarioContinueBtn" disabled data-i18n="continue_btn">Continua</button>
+        <button class="primary-btn" id="toOrarioContinueBtn" disabled data-i18n="continue_btn">Continui</button>
       </div>
 
       <!-- STEP 3: PERSONE -->
       <div class="step-panel" data-panel="3">
         <h3 data-i18n="step3_title">Quante persone?</h3>
-        <p class="hint" id="peopleHint" data-i18n="step3_hint">Puoi prenotare da 1 fino ai posti ancora liberi in questo turno.</p>
+        <p class="hint" id="peopleHint" data-i18n="step3_hint">Può prenotare da 1 fino ai posti ancora liberi in questo turno.</p>
         <div class="stepper">
           <button type="button" id="peopleMinus">−</button>
           <div class="count" id="peopleCount">1</div>
           <button type="button" id="peoplePlus">+</button>
         </div>
         <p class="hint stepper-note" id="peopleAvail"></p>
-        <button class="primary-btn" id="toContactBtn" data-i18n="continue_btn">Continua</button>
+
+        <div class="addon-box" id="addonBox">
+          <label class="addon-toggle">
+            <input type="checkbox" id="addonEnabled">
+            <span data-i18n="addon_toggle_label">Desidera aggiungere uno Smart Relax dopo il percorso?</span>
+          </label>
+          <p class="hint" data-i18n="addon_desc">30 minuti in più, 35 € a persona — scegli il trattamento.</p>
+          <div class="addon-options" id="addonOptions" style="display:none;">
+            <div class="addon-zone-row" id="addonZoneRow">
+              <label class="zone-choice"><input type="radio" name="addonZone" value="viso_testa" checked><span data-i18n="addon_zone_viso_testa">Viso &amp; testa</span></label>
+              <label class="zone-choice"><input type="radio" name="addonZone" value="schiena"><span data-i18n="addon_zone_schiena">Schiena</span></label>
+              <label class="zone-choice"><input type="radio" name="addonZone" value="gambe"><span data-i18n="addon_zone_gambe">Gambe</span></label>
+            </div>
+            <p class="addon-people-label" data-i18n="addon_people_label">Per quante persone?</p>
+            <div class="stepper addon-stepper">
+              <button type="button" id="addonPeopleMinus">−</button>
+              <div class="count" id="addonPeopleCount">1</div>
+              <button type="button" id="addonPeoplePlus">+</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="primary-btn" id="toContactBtn" data-i18n="continue_btn">Continui</button>
       </div>
 
       <!-- STEP 4: DATI -->
       <div class="step-panel" data-panel="4">
-        <h3 data-i18n="step4_title">I tuoi dati</h3>
+        <h3 data-i18n="step4_title">I Suoi dati</h3>
         <p class="hint" style="margin-bottom:14px;" data-i18n="step4_required">I campi con * sono obbligatori.</p>
         <div class="form-grid">
           <div class="field"><label for="fName" data-i18n="label_name">Nome *</label><input id="fName" type="text" autocomplete="given-name" required></div>
@@ -307,7 +357,7 @@
           <div class="field"><label for="fEmail" data-i18n="label_email">Email *</label><input id="fEmail" type="email" autocomplete="email" required></div>
           <div class="field full"><label for="fNote" data-i18n="label_note">Note (facoltativo)</label><textarea id="fNote" rows="2" placeholder="Allergie, preferenze, richieste particolari..." data-i18n-placeholder="placeholder_note"></textarea></div>
         </div>
-        <button class="primary-btn" id="toPaymentBtn" data-i18n="to_payment_btn">Vai al pagamento</button>
+        <button class="primary-btn" id="toPaymentBtn" data-i18n="to_payment_btn">Vada al pagamento</button>
         <div class="status-msg" id="formStatus"></div>
       </div>
 
@@ -318,14 +368,14 @@
           <label for="fDiscount" data-i18n="label_discount">Codice sconto alloggiati (facoltativo)</label>
           <div style="display:flex; gap:8px;">
             <input id="fDiscount" type="text" placeholder="Es. kemonia" style="flex:1; text-transform:lowercase;">
-            <button type="button" class="primary-btn" id="applyDiscountBtn" style="margin-top:0; padding:11px 16px;" data-i18n="apply_btn">Applica</button>
+            <button type="button" class="primary-btn" id="applyDiscountBtn" style="margin-top:0; padding:11px 16px;" data-i18n="apply_btn">Applichi</button>
           </div>
           <div class="status-msg" id="discountStatus"></div>
         </div>
         <div class="price-summary" id="priceSummary"></div>
         <div id="paypal-button-container"></div>
         <button class="preview-pay-btn" id="previewPayBtn" style="display:none;">Paga con PayPal</button>
-        <button class="primary-btn" id="freeConfirmBtn" style="display:none;" data-i18n="free_confirm_btn">Conferma prenotazione gratuita</button>
+        <button class="primary-btn" id="freeConfirmBtn" style="display:none;" data-i18n="free_confirm_btn">Confermi prenotazione gratuita</button>
         <div class="preview-note" id="paypalNote"></div>
       </div>
 
@@ -333,7 +383,7 @@
       <div class="step-panel" data-panel="confirm">
         <div class="confirm-box">
           <h3 data-i18n="confirm_title">Prenotazione confermata</h3>
-          <p data-i18n="confirm_text">Ti aspettiamo. Conserva questo codice, ti sarà utile all'arrivo.</p>
+          <p data-i18n="confirm_text">La aspettiamo. Conservi questo codice, Le sarà utile all'arrivo.</p>
           <div class="code mono" id="confirmCode"></div>
           <p class="hint" id="confirmDetails"></p>
         </div>
@@ -345,11 +395,11 @@
   <section class="block" id="cancella" style="padding:24px 0 40px;">
     <div class="cancel-compact">
       <button type="button" class="cancel-toggle" id="cancelToggleBtn">
-        <span data-i18n="cancel_toggle_label">Devi disdire una prenotazione?</span>
+        <span data-i18n="cancel_toggle_label">Deve disdire una prenotazione?</span>
         <span class="chevron">›</span>
       </button>
       <div class="cancel-body" id="cancelBody">
-        <p class="hint" style="margin-bottom:10px;" data-i18n="cancel_hint">Trovi il codice nell'email di conferma che hai ricevuto.</p>
+        <p class="hint" style="margin-bottom:10px;" data-i18n="cancel_hint">Trovi il codice nell'email di conferma che ha ricevuto.</p>
         <div class="form-grid">
           <div class="field">
             <label for="cancelDate" data-i18n="cancel_label_date">Data della prenotazione</label>
@@ -368,7 +418,7 @@
             <input type="text" id="cancelCode" placeholder="Es. ALO-A7K2P" style="text-transform:uppercase;">
           </div>
         </div>
-        <button class="primary-btn" id="cancelBtn" data-i18n="cancel_btn">Cancella prenotazione</button>
+        <button class="primary-btn" id="cancelBtn" data-i18n="cancel_btn">Cancelli prenotazione</button>
         <div class="status-msg" id="cancelStatus"></div>
       </div>
     </div>
@@ -386,12 +436,12 @@
           <label for="adminPassword">Password gestione</label>
           <input id="adminPassword" type="password" placeholder="Password">
         </div>
-        <button class="primary-btn" id="adminLoginBtn" style="margin-top:0;">Accedi</button>
+        <button class="primary-btn" id="adminLoginBtn" style="margin-top:0;">Acceda</button>
         <div class="status-msg" id="adminLoginStatus"></div>
       </div>
 
       <div id="adminPanel" style="display:none;">
-        <p class="hint">Clicca sulle date per chiuderle o riaprirle, poi salva. Le date già passate non sono modificabili.</p>
+        <p class="hint">Clicchi sulle date per chiuderle o riaprirle, poi salvi. Le date già passate non sono modificabili.</p>
         <div class="cal-nav">
           <button id="adminCalPrev" aria-label="Mese precedente">‹</button>
           <div class="cal-month" id="adminCalMonthLabel"></div>
@@ -400,7 +450,7 @@
         <div class="cal-grid" id="adminCalDow"></div>
         <div class="cal-grid" id="adminCalGrid" style="margin-top:6px;"></div>
         <div class="cal-legend">Le date evidenziate in rosso sono chiuse alle prenotazioni.</div>
-        <button class="primary-btn" id="adminSaveBtn">Salva date chiuse</button>
+        <button class="primary-btn" id="adminSaveBtn">Salvi date chiuse</button>
         <div class="status-msg" id="adminStatus"></div>
       </div>
     </div>
@@ -420,9 +470,11 @@ const CALENDAR_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbySzMasVfO
 const CAPACITY = 6;
 const SLOTS = ['17:00','18:00','19:00'];
 const DURATIONS = {
-  '50':  { minutes:50,  labelIt:'50 minuti', priceStandard:35, priceKemonia17:20 },
-  '120': { minutes:120, labelIt:'2 ore',      priceStandard:65, priceKemonia17:55 }
+  '50':  { minutes:60,  labelIt:'60 minuti', priceStandard:35, priceKemonia17:20 },
+  '120': { minutes:90,  labelIt:'90 minuti',   priceStandard:45, priceKemonia17:38 }
 };
+const ADDON_MINUTES = 30;
+const ADDON_PRICE = 35;
 const START_DATE = new Date(2026,7,3);
 const END_DATE   = new Date(2026,8,30);
 const DOW_BY_LANG = {
@@ -442,52 +494,52 @@ let currentLang = 'it';
 const I18N = {
   it: {
     hero_title: 'Un percorso di <em>quiete condivisa</em>,<br>fino a sei persone alla volta.',
-    hero_sub: 'Aperto anche a chi non alloggia in hotel. 50 minuti di percorso benessere, tra le 17:00 e le 20:00.',
-    cta_book: 'Prenota il percorso',
+    hero_sub: 'Aperto anche a chi non alloggia in hotel. 60 minuti di percorso benessere, tra le 17:00 e le 20:00.',
+    cta_book: 'Prenoti il percorso',
     percorso_eyebrow: 'IL PERCORSO',
     percorso_title: 'Percorso Benessere',
     product_desc: 'Un unico percorso condiviso, pensato per essere vissuto in compagnia — da soli o fino a sei persone insieme.',
-    product_meta_duration: '<b>50 min</b>',
+    product_meta_duration: '<b>60 min</b>',
     product_meta_price: '<b>35 €</b> a persona',
     product_meta_capacity: 'fino a <b>6 persone</b> per turno',
     product_meta_external: 'anche per <b>esterni</b>',
     booking_eyebrow: 'LA PRENOTAZIONE',
     booking_title: 'Scegli data, orario e quante persone',
-    booking_desc: 'Ogni turno ha 6 posti condivisi: puoi prenotarne da 1 a 6, in base a quanti sono ancora liberi.',
-    step_data: 'Data', step_orario: 'Orario', step_persone: 'Persone', step_dati: 'I tuoi dati', step_pagamento: 'Pagamento',
-    step1_title: 'Quando vuoi venire?',
+    booking_desc: 'Ogni turno ha 6 posti condivisi: può prenotarne da 1 a 6, in base a quanti sono ancora liberi.',
+    step_data: 'Data', step_orario: 'Orario', step_persone: 'Persone', step_dati: 'I Suoi dati', step_pagamento: 'Pagamento',
+    step1_title: 'Quando desidera venire?',
     step1_hint: 'Dal 3 agosto al 30 settembre 2026.',
     cal_legend: 'Le celle chiare non sono prenotabili (giorno chiuso o fuori stagione).',
     step2_title: 'A che ora?',
-    step2_hint: 'Seleziona <b>una fascia</b> per il percorso da 50 minuti, oppure <b>due fasce consecutive</b> per il percorso da 2 ore.',
-    kemonia_note: 'Alloggi in hotel? Chiedi il codice sconto in reception per il percorso delle 17:00.',
-    continue_btn: 'Continua',
+    step2_hint: 'Selezioni <b>una fascia</b> per il percorso da 60 minuti, oppure <b>due fasce consecutive</b> per il percorso da 90 minuti.',
+    kemonia_note: 'Alloggia in hotel? Chieda il codice sconto in reception per il percorso delle 17:00.',
+    continue_btn: 'Continui',
     step3_title: 'Quante persone?',
-    step3_hint: 'Puoi prenotare da 1 fino ai posti ancora liberi in questo turno.',
-    step4_title: 'I tuoi dati',
+    step3_hint: 'Può prenotare da 1 fino ai posti ancora liberi in questo turno.',
+    step4_title: 'I Suoi dati',
     step4_required: 'I campi con * sono obbligatori.',
     label_name: 'Nome *', label_surname: 'Cognome *', label_phone: 'Telefono *', label_email: 'Email *', label_note: 'Note (facoltativo)',
     placeholder_phone: 'Es. 320 1234567', placeholder_note: 'Allergie, preferenze, richieste particolari...',
-    to_payment_btn: 'Vai al pagamento',
+    to_payment_btn: 'Vada al pagamento',
     step5_title: 'Conferma e paga',
     label_discount: 'Codice sconto alloggiati (facoltativo)',
-    apply_btn: 'Applica',
-    free_confirm_btn: 'Conferma prenotazione gratuita',
+    apply_btn: 'Applichi',
+    free_confirm_btn: 'Confermi prenotazione gratuita',
     confirm_title: 'Prenotazione confermata',
-    confirm_text: 'Ti aspettiamo. Conserva questo codice, ti sarà utile all\'arrivo.',
-    cancel_toggle_label: 'Devi disdire una prenotazione?',
-    cancel_hint: 'Trovi il codice nell\'email di conferma che hai ricevuto.',
+    confirm_text: 'La aspettiamo. Conservi questo codice, Le sarà utile all\'arrivo.',
+    cancel_toggle_label: 'Deve disdire una prenotazione?',
+    cancel_hint: 'Trovi il codice nell\'email di conferma che ha ricevuto.',
     cancel_label_date: 'Data della prenotazione', cancel_label_time: 'Orario', cancel_label_code: 'Codice prenotazione',
-    cancel_btn: 'Cancella prenotazione',
+    cancel_btn: 'Cancelli prenotazione',
     footer_text: 'SPA Aloe — Grand Hotel Piazza Borsa · Percorso Benessere · 3 agosto – 30 settembre 2026 · 17:00–20:00',
 
-    duration_label_50: '50 minuti', duration_label_120: '2 ore',
+    duration_label_50: '60 minuti', duration_label_120: '90 minuti',
     people_unit: 'persona/e',
     seats_free: 'posti liberi', seats_full: 'Al completo',
-    all_full: 'Tutti gli orari di questa data sono al completo: prova un altro giorno.',
+    all_full: 'Tutti gli orari di questa data sono al completo: provi un altro giorno.',
     checking_avail: 'Verifico i posti disponibili...',
     selected_summary: (dur, start, end, remaining) => `Hai selezionato: <b>${dur}</b>, dalle <b>${start}</b> alle <b>${end}</b> — ${remaining} posti liberi.`,
-    selected_full: 'Per questa combinazione di orari non ci sono abbastanza posti liberi: prova un altro orario.',
+    selected_full: 'Per questa combinazione di orari non ci sono abbastanza posti liberi: provi un altro orario.',
     price_row_label: (dur, people) => `Percorso Benessere (${dur}) × ${people} persona/e`,
     price_each: '€ cad.',
     discount_row: 'Sconto alloggiati (kemonia)',
@@ -496,32 +548,46 @@ const I18N = {
     total: 'Totale', total_pay_hotel: 'Totale (da pagare in hotel)',
     kemonia_applied: (price) => `Codice applicato: ${price}€ a persona (valido solo per il turno delle 17:00).`,
     kemonia_invalid_time: 'Il codice "kemonia" è valido solo per il turno delle 17:00: qui non verrà applicato.',
-    pagdir_applied: 'Codice applicato: pagherai direttamente in hotel, nessun pagamento online richiesto.',
+    pagdir_applied: 'Codice applicato: pagherà direttamente in hotel, nessun pagamento online richiesto.',
     prova_applied: 'Codice di test applicato: prenotazione gratuita.',
     code_invalid: 'Codice non valido.',
-    pay_at_hotel_btn: 'Conferma prenotazione (pagamento in hotel)',
-    pay_at_hotel_note: (price) => `Codice PAGDIR: pagherai ${price} € direttamente in hotel.`,
+    pay_at_hotel_btn: 'Confermi prenotazione (pagamento in hotel)',
+    pay_at_hotel_note: (price) => `Codice PAGDIR: pagherà ${price} € direttamente in hotel.`,
     test_note: 'Codice di test: nessun pagamento richiesto.',
-    paypal_btn: (price) => `Paga ${price} € con PayPal`,
+    paypal_btn: (price) => `Paghi ${price} € con PayPal`,
     paypal_preview_note: 'Modalità anteprima: il vero pulsante PayPal apparirà qui una volta pubblicato il sito con un Client ID valido.',
-    paypal_error: 'Si è verificato un problema con PayPal. Riprova tra poco.',
-    form_missing: 'Compila nome, cognome, telefono ed email per proseguire.',
-    form_phone_invalid: 'Inserisci un numero di telefono valido (almeno 8 cifre).',
-    form_email_invalid: 'Inserisci un indirizzo email valido.',
+    paypal_error: 'Si è verificato un problema con PayPal. Riprovi tra poco.',
+    form_missing: 'Compili nome, cognome, telefono ed email per proseguire.',
+    form_phone_invalid: 'Inserisca un numero di telefono valido (almeno 8 cifre).',
+    form_email_invalid: 'Inserisca un indirizzo email valido.',
     confirm_details: (date, time, dur, people, name, surname) => `${date} ore ${time} (${dur}) · ${people} persona/e · ${name} ${surname}`,
-    cancel_missing: 'Inserisci data e codice prenotazione.',
+    cancel_missing: 'Inserisca data e codice prenotazione.',
     cancel_checking: 'Verifico...',
     cancel_not_found: 'Non risulta nessuna prenotazione attiva con questo codice per data e orario indicati.',
-    cancel_success: 'Prenotazione cancellata. I posti sono di nuovo disponibili.'
+    cancel_success: 'Prenotazione cancellata. I posti sono di nuovo disponibili.',
+
+    addon_toggle_label: 'Desidera aggiungere uno Smart Relax dopo il percorso?',
+    addon_desc: '30 minuti in più, 35 € a persona — scegli il trattamento.',
+    addon_zone_viso_testa: 'Viso & testa',
+    addon_zone_schiena: 'Schiena',
+    addon_zone_gambe: 'Gambe',
+    addon_people_label: 'Per quante persone?',
+    addon_row_label: (zona, persone) => `Smart Relax (${zona}) × ${persone} persona/e`,
+    addon_confirm_suffix: (zona, persone) => ` + Smart Relax (${zona}) × ${persone}`,
+
+    services_eyebrow: 'ANCHE ALLA SPA',
+    services_title: 'Scopri gli altri trattamenti',
+    services_desc: 'Massaggi, trattamenti viso e rituali dedicati: consulti il listino completo e si rivolga alla reception per prenotarli.',
+    services_link_label: 'Vedi il listino prezzi'
   },
   en: {
     hero_title: 'A path of <em>shared quiet</em>,<br>for up to six people at a time.',
-    hero_sub: 'Also open to guests not staying at the hotel. 50 minutes of wellness treatment, between 5pm and 8pm.',
+    hero_sub: 'Also open to guests not staying at the hotel. 60 minutes of wellness treatment, between 5pm and 8pm.',
     cta_book: 'Book the treatment',
     percorso_eyebrow: 'THE TREATMENT',
     percorso_title: 'Percorso Benessere',
     product_desc: 'A single shared treatment, designed to be enjoyed together — alone or with up to six people.',
-    product_meta_duration: '<b>50 min</b>',
+    product_meta_duration: '<b>60 min</b>',
     product_meta_price: '<b>€35</b> per person',
     product_meta_capacity: 'up to <b>6 people</b> per slot',
     product_meta_external: 'also for <b>non-guests</b>',
@@ -533,7 +599,7 @@ const I18N = {
     step1_hint: 'From August 3 to September 30, 2026.',
     cal_legend: 'Faded cells are not bookable (closed day or out of season).',
     step2_title: 'What time?',
-    step2_hint: 'Select <b>one time slot</b> for the 50-minute treatment, or <b>two consecutive slots</b> for the 2-hour treatment.',
+    step2_hint: 'Select <b>one time slot</b> for the 60-minute treatment, or <b>two consecutive slots</b> for the 90-minute treatment.',
     kemonia_note: 'Staying at the hotel? Ask reception for your discount code for the 5pm slot.',
     continue_btn: 'Continue',
     step3_title: 'How many people?',
@@ -555,7 +621,7 @@ const I18N = {
     cancel_btn: 'Cancel booking',
     footer_text: 'SPA Aloe — Grand Hotel Piazza Borsa · Wellness treatment · August 3 – September 30, 2026 · 5pm–8pm',
 
-    duration_label_50: '50 minutes', duration_label_120: '2 hours',
+    duration_label_50: '60 minutes', duration_label_120: '90 minutes',
     people_unit: 'people',
     seats_free: 'spots free', seats_full: 'Fully booked',
     all_full: 'All time slots for this date are fully booked: please try another day.',
@@ -586,13 +652,28 @@ const I18N = {
     cancel_missing: 'Please enter the date and booking code.',
     cancel_checking: 'Checking...',
     cancel_not_found: 'No active booking found with this code for the given date and time.',
-    cancel_success: 'Booking cancelled. The spots are available again.'
+    cancel_success: 'Booking cancelled. The spots are available again.',
+
+    addon_toggle_label: 'Would you like to add a Smart Relax after the treatment?',
+    addon_desc: '30 extra minutes, €35 per person — choose the treatment area.',
+    addon_zone_viso_testa: 'Face & head',
+    addon_zone_schiena: 'Back',
+    addon_zone_gambe: 'Legs',
+    addon_people_label: 'For how many people?',
+    addon_row_label: (zone, people) => `Smart Relax (${zone}) × ${people} people`,
+    addon_confirm_suffix: (zone, people) => ` + Smart Relax (${zone}) × ${people}`,
+
+    services_eyebrow: 'ALSO AT THE SPA',
+    services_title: 'Discover our other treatments',
+    services_desc: 'Massages, facial treatments and dedicated rituals: check the full price list and ask reception to book them.',
+    services_link_label: 'View price list'
   }
 };
 function t(key){ return I18N[currentLang][key]; }
 
 let state = { date:null, dateLabel:null, time:null, dayData:null, people:1, duration:'50', selectedHours:[],
-  name:'', surname:'', phone:'', email:'', note:'', code:null, discountCode:null, closedDates:[] };
+  name:'', surname:'', phone:'', email:'', note:'', code:null, discountCode:null, closedDates:[],
+  addon:{ enabled:false, zone:'viso_testa', people:1 } };
 let calMonth = { y:2026, m:7 };
 let adminCalMonth = { y:2026, m:7 };
 let adminPendingClosed = new Set();
@@ -811,10 +892,34 @@ function setupPeopleStepper(){
   document.getElementById('peopleAvail').textContent = `${remaining} posti liberi in questo turno.`;
   document.getElementById('peopleMinus').disabled = state.people <= 1;
   document.getElementById('peoplePlus').disabled = state.people >= remaining;
+  if(state.addon.people > state.people) state.addon.people = state.people;
+  setupAddonUI();
 }
 document.getElementById('peopleMinus').addEventListener('click', ()=>{ if(state.people>1){ state.people--; setupPeopleStepper(); } });
 document.getElementById('peoplePlus').addEventListener('click', ()=>{ if(state.people < remainingFor(state.time)){ state.people++; setupPeopleStepper(); } });
 document.getElementById('toContactBtn').addEventListener('click', ()=>{ renderSummary(); goToStep(4); });
+
+/* ---------------- ADDON: SMART RELAX ---------------- */
+function setupAddonUI(){
+  document.getElementById('addonPeopleCount').textContent = state.addon.people;
+  document.getElementById('addonPeopleMinus').disabled = state.addon.people <= 1;
+  document.getElementById('addonPeoplePlus').disabled = state.addon.people >= state.people;
+  document.querySelectorAll('.zone-choice').forEach(el=>{
+    const input = el.querySelector('input');
+    el.classList.toggle('checked', input.checked);
+  });
+}
+document.getElementById('addonEnabled').addEventListener('change', (e)=>{
+  state.addon.enabled = e.target.checked;
+  document.getElementById('addonOptions').style.display = state.addon.enabled ? 'block' : 'none';
+  if(state.addon.enabled && state.addon.people < 1) state.addon.people = 1;
+  setupAddonUI();
+});
+document.querySelectorAll('input[name="addonZone"]').forEach(radio=>{
+  radio.addEventListener('change', ()=>{ state.addon.zone = radio.value; setupAddonUI(); });
+});
+document.getElementById('addonPeopleMinus').addEventListener('click', ()=>{ if(state.addon.people>1){ state.addon.people--; setupAddonUI(); } });
+document.getElementById('addonPeoplePlus').addEventListener('click', ()=>{ if(state.addon.people<state.people){ state.addon.people++; setupAddonUI(); } });
 
 /* ---------------- DATI CLIENTE ---------------- */
 document.getElementById('toPaymentBtn').addEventListener('click', ()=>{
@@ -844,7 +949,8 @@ function pricePerPerson(){
   if(state.discountCode === 'KEMONIA' && state.time === '17:00') return d.priceKemonia17;
   return d.priceStandard;
 }
-function finalPrice(){ return pricePerPerson() * state.people; }
+function addonPrice(){ return (state.addon.enabled ? ADDON_PRICE * state.addon.people : 0); }
+function finalPrice(){ return (pricePerPerson() * state.people) + addonPrice(); }
 
 document.getElementById('applyDiscountBtn').addEventListener('click', ()=>{
   const raw = document.getElementById('fDiscount').value.trim().toUpperCase();
@@ -887,6 +993,10 @@ function renderPriceSummary(){
   if(state.discountCode === 'KEMONIA' && state.time === '17:00'){
     rows += `<div class="row"><span>${t('discount_row')}</span><span>-${((DURATIONS[state.duration].priceStandard - DURATIONS[state.duration].priceKemonia17) * state.people).toFixed(2)} €</span></div>`;
   }
+  if(state.addon.enabled){
+    const zoneLabel = t('addon_zone_'+state.addon.zone);
+    rows += `<div class="row"><span>${t('addon_row_label')(zoneLabel, state.addon.people)}</span><span>${(ADDON_PRICE*state.addon.people).toFixed(2)} €</span></div>`;
+  }
   if(payAtHotel){
     rows += `<div class="row"><span>${t('payment_method')}</span><span>${t('pay_at_hotel')}</span></div>`;
   }
@@ -905,11 +1015,12 @@ function renderSummary(){
 }
 
 /* ---------------- NAVIGAZIONE STEP ---------------- */
-function goToStep(n){
+function goToStep(n, opts){
+  const scroll = !opts || opts.scroll !== false;
   document.querySelectorAll('#booking .step-panel').forEach(p=> p.classList.remove('visible'));
   document.querySelector(`#booking .step-panel[data-panel="${n}"]`).classList.add('visible');
   document.querySelectorAll('.steps-nav span').forEach(s=> s.classList.toggle('active', parseInt(s.dataset.step)===n));
-  document.getElementById('booking').scrollIntoView({behavior:'smooth', block:'start'});
+  if(scroll) document.getElementById('booking').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 /* ---------------- PAGAMENTO ---------------- */
@@ -941,7 +1052,7 @@ function setupPayment(){
       style:{ layout:'vertical', color:'gold', shape:'pill', label:'paypal' },
       createOrder: (data, actions) => actions.order.create({
         purchase_units: [{ amount: { value: fp.toFixed(2), currency_code: 'EUR' },
-          description: `Percorso Benessere SPA Aloe - ${state.people} pers. - ${state.dateLabel} ore ${state.time}` }]
+          description: `Percorso Benessere SPA Aloe - ${state.people} pers. - ${state.dateLabel} ore ${state.time}${state.addon.enabled ? ' + Smart Relax' : ''}` }]
       }),
       onApprove: async (data, actions) => { await actions.order.capture(); await finalizeBooking(); },
       onError: () => { note.textContent = t('paypal_error'); }
@@ -981,16 +1092,28 @@ async function finalizeBooking(){
     prezzo_persona: perPerson,
     prezzo_totale: total.toFixed(2),
     codice_sconto: state.discountCode || '-',
-    stato_pagamento: payAtHotel ? 'Da pagare in hotel' : 'Pagato online'
+    stato_pagamento: payAtHotel ? 'Da pagare in hotel' : 'Pagato online',
+    addon_attivo: state.addon.enabled ? 'Si' : 'No',
+    addon_zona: state.addon.enabled ? I18N.it['addon_zone_'+state.addon.zone] : '-',
+    addon_persone: state.addon.enabled ? state.addon.people : 0,
+    addon_prezzo: state.addon.enabled ? (ADDON_PRICE*state.addon.people).toFixed(2) : '0.00'
   });
 
   document.getElementById('confirmCode').textContent = code;
-  document.getElementById('confirmDetails').textContent = t('confirm_details')(state.dateLabel, state.time, t('duration_label_'+state.duration), state.people, state.name, state.surname);
+  let confirmText = t('confirm_details')(state.dateLabel, state.time, t('duration_label_'+state.duration), state.people, state.name, state.surname);
+  if(state.addon.enabled){
+    confirmText += t('addon_confirm_suffix')(t('addon_zone_'+state.addon.zone), state.addon.people);
+  }
+  document.getElementById('confirmDetails').textContent = confirmText;
   goToStep('confirm');
 
   state.discountCode = null;
   document.getElementById('fDiscount').value = '';
   document.getElementById('discountStatus').textContent = '';
+
+  state.addon = { enabled:false, zone:'viso_testa', people:1 };
+  document.getElementById('addonEnabled').checked = false;
+  document.getElementById('addonOptions').style.display = 'none';
 }
 
 /* ---------------- CANCELLAZIONE (widget compatto) ---------------- */
@@ -1039,7 +1162,7 @@ if (new URLSearchParams(location.search).get('gestione') === '1') {
 document.getElementById('adminLoginBtn').addEventListener('click', async ()=>{
   const password = document.getElementById('adminPassword').value;
   const statusEl = document.getElementById('adminLoginStatus');
-  if(!password){ statusEl.textContent = 'Inserisci la password.'; statusEl.style.color = '#B0562D'; return; }
+  if(!password){ statusEl.textContent = 'Inserisca la password.'; statusEl.style.color = '#B0562D'; return; }
   statusEl.textContent = 'Verifico...'; statusEl.style.color = '';
 
   const res = await fetchFromBackend({ action:'admin_check', password });
@@ -1144,7 +1267,7 @@ document.querySelectorAll('#langToggle button').forEach(btn=>{
 applyStaticTranslations();
 renderCalendarHeader();
 renderCalendar();
-goToStep(1);
+goToStep(1, {scroll:false});
 loadSettings();
 
 (function loadPaypalSdk(){
